@@ -1,0 +1,374 @@
+{
+  "report_metadata": {
+    "tool": "compression_stress_test.py",
+    "version": "1.0.0",
+    "timestamp": "2026-10-24T11:25:00.272211+00:00",
+    "thesis": "AI Transparency in the Wild",
+    "author": "Pratyay Mondal"
+  },
+  "source_file": {
+    "path": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+    "name": "signed_test_image.jpg",
+    "size_bytes": 1506131,
+    "c2pa_present": true,
+    "c2pa_validation_status": "VALID_SIGNATURE",
+    "active_manifest": {
+      "id": "urn:c2pa:74ba62a9-efcd-4644-afce-35be9491e36f",
+      "claim_generator": "AI Transparency Thesis Test Harness/1.0.0",
+      "claim_generator_info": [
+        {
+          "name": "AI Transparency Thesis Test Harness",
+          "version": "1.0.0",
+          "org.contentauth.c2pa_rs": "0.91.3"
+        }
+      ],
+      "title": "C2PA Compression Test Asset",
+      "format": ""
+    },
+    "signature_info": {
+      "issuer": "C2PA Test Signing Cert",
+      "cert_serial_number": "640229841392226413189608867977836244731148734950",
+      "time": "",
+      "alg": "Es256"
+    }
+  },
+  "test_results": [
+    {
+      "pipeline_platform": "Facebook",
+      "pipeline_variant": "feed_jpeg_high",
+      "pipeline_description": "Facebook Feed \u2014 JPEG high quality (Q=85, max 2048px)",
+      "input_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+      "input_dimensions": [
+        3000,
+        2000
+      ],
+      "input_size_bytes": 1506131,
+      "output_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/facebook_feed_jpeg_high/output.jpg",
+      "output_dimensions": [
+        2048,
+        1365
+      ],
+      "output_size_bytes": 459323,
+      "output_format": "JPEG",
+      "c2pa_survived": false,
+      "c2pa_validation_status": "NO_MANIFEST",
+      "c2pa_errors": [],
+      "size_reduction_pct": 69.5,
+      "steps_applied": [
+        "resize: Downscale to max 2048px longest edge",
+        "strip_metadata: Strip all metadata (EXIF, JUMBF, XMP)",
+        "recompress: JPEG re-encode at Q=85"
+      ],
+      "execution_time_ms": 379.3
+    },
+    {
+      "pipeline_platform": "Facebook",
+      "pipeline_variant": "feed_jpeg_low",
+      "pipeline_description": "Facebook Feed \u2014 JPEG lower quality (Q=71, max 2048px)",
+      "input_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+      "input_dimensions": [
+        3000,
+        2000
+      ],
+      "input_size_bytes": 1506131,
+      "output_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/facebook_feed_jpeg_low/output.jpg",
+      "output_dimensions": [
+        2048,
+        1365
+      ],
+      "output_size_bytes": 353339,
+      "output_format": "JPEG",
+      "c2pa_survived": false,
+      "c2pa_validation_status": "NO_MANIFEST",
+      "c2pa_errors": [],
+      "size_reduction_pct": 76.5,
+      "steps_applied": [
+        "resize: Downscale to max 2048px longest edge",
+        "strip_metadata: Strip all metadata",
+        "recompress: JPEG re-encode at Q=71"
+      ],
+      "execution_time_ms": 361.2
+    },
+    {
+      "pipeline_platform": "Facebook",
+      "pipeline_variant": "feed_webp",
+      "pipeline_description": "Facebook Feed \u2014 WebP conversion (Q=80, max 2048px)",
+      "input_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+      "input_dimensions": [
+        3000,
+        2000
+      ],
+      "input_size_bytes": 1506131,
+      "output_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/facebook_feed_webp/output.webp",
+      "output_dimensions": [
+        2048,
+        1365
+      ],
+      "output_size_bytes": 87976,
+      "output_format": "WEBP",
+      "c2pa_survived": false,
+      "c2pa_validation_status": "NO_MANIFEST",
+      "c2pa_errors": [],
+      "size_reduction_pct": 94.2,
+      "steps_applied": [
+        "resize: Downscale to max 2048px longest edge",
+        "strip_metadata: Strip all metadata",
+        "convert_webp: Convert to WebP at Q=80"
+      ],
+      "execution_time_ms": 619.9
+    },
+    {
+      "pipeline_platform": "Instagram",
+      "pipeline_variant": "feed_standard",
+      "pipeline_description": "Instagram Feed \u2014 Standard (Q=80, max 1080px width)",
+      "input_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+      "input_dimensions": [
+        3000,
+        2000
+      ],
+      "input_size_bytes": 1506131,
+      "output_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/instagram_feed_standard/output.jpg",
+      "output_dimensions": [
+        1080,
+        720
+      ],
+      "output_size_bytes": 145099,
+      "output_format": "JPEG",
+      "c2pa_survived": false,
+      "c2pa_validation_status": "NO_MANIFEST",
+      "c2pa_errors": [],
+      "size_reduction_pct": 90.4,
+      "steps_applied": [
+        "resize: Downscale to max 1080px width",
+        "strip_metadata: Full metadata strip",
+        "recompress: JPEG re-encode at Q=80"
+      ],
+      "execution_time_ms": 141.4
+    },
+    {
+      "pipeline_platform": "Instagram",
+      "pipeline_variant": "story",
+      "pipeline_description": "Instagram Story \u2014 Aggressive (Q=75, resize to 1080x1920)",
+      "input_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+      "input_dimensions": [
+        3000,
+        2000
+      ],
+      "input_size_bytes": 1506131,
+      "output_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/instagram_story/output.jpg",
+      "output_dimensions": [
+        1080,
+        1920
+      ],
+      "output_size_bytes": 225349,
+      "output_format": "JPEG",
+      "c2pa_survived": false,
+      "c2pa_validation_status": "NO_MANIFEST",
+      "c2pa_errors": [],
+      "size_reduction_pct": 85.0,
+      "steps_applied": [
+        "resize: Resize/crop to 1080x1920 (9:16)",
+        "strip_metadata: Full metadata strip",
+        "recompress: JPEG re-encode at Q=75"
+      ],
+      "execution_time_ms": 250.5
+    },
+    {
+      "pipeline_platform": "Instagram",
+      "pipeline_variant": "feed_webp",
+      "pipeline_description": "Instagram Feed \u2014 WebP (Q=75, max 1080px width)",
+      "input_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+      "input_dimensions": [
+        3000,
+        2000
+      ],
+      "input_size_bytes": 1506131,
+      "output_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/instagram_feed_webp/output.webp",
+      "output_dimensions": [
+        1080,
+        720
+      ],
+      "output_size_bytes": 21242,
+      "output_format": "WEBP",
+      "c2pa_survived": false,
+      "c2pa_validation_status": "NO_MANIFEST",
+      "c2pa_errors": [],
+      "size_reduction_pct": 98.6,
+      "steps_applied": [
+        "resize: Downscale to max 1080px width",
+        "strip_metadata: Full metadata strip",
+        "convert_webp: Convert to WebP at Q=75"
+      ],
+      "execution_time_ms": 174.0
+    },
+    {
+      "pipeline_platform": "WhatsApp",
+      "pipeline_variant": "standard",
+      "pipeline_description": "WhatsApp Standard \u2014 Aggressive client-side (Q=60, max 1600px)",
+      "input_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+      "input_dimensions": [
+        3000,
+        2000
+      ],
+      "input_size_bytes": 1506131,
+      "output_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/whatsapp_standard/output.jpg",
+      "output_dimensions": [
+        1600,
+        1066
+      ],
+      "output_size_bytes": 216554,
+      "output_format": "JPEG",
+      "c2pa_survived": false,
+      "c2pa_validation_status": "NO_MANIFEST",
+      "c2pa_errors": [],
+      "size_reduction_pct": 85.6,
+      "steps_applied": [
+        "resize: Downscale to max 1600px longest edge",
+        "strip_metadata: Aggressive metadata strip",
+        "recompress: JPEG re-encode at Q=60"
+      ],
+      "execution_time_ms": 240.8
+    },
+    {
+      "pipeline_platform": "WhatsApp",
+      "pipeline_variant": "hd",
+      "pipeline_description": "WhatsApp HD \u2014 Higher quality (Q=75, max 2560px)",
+      "input_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+      "input_dimensions": [
+        3000,
+        2000
+      ],
+      "input_size_bytes": 1506131,
+      "output_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/whatsapp_hd/output.jpg",
+      "output_dimensions": [
+        2560,
+        1706
+      ],
+      "output_size_bytes": 543840,
+      "output_format": "JPEG",
+      "c2pa_survived": false,
+      "c2pa_validation_status": "NO_MANIFEST",
+      "c2pa_errors": [],
+      "size_reduction_pct": 63.9,
+      "steps_applied": [
+        "resize: Downscale to max 2560px longest edge",
+        "strip_metadata: Full metadata strip",
+        "recompress: JPEG re-encode at Q=75"
+      ],
+      "execution_time_ms": 521.3
+    },
+    {
+      "pipeline_platform": "Baseline",
+      "pipeline_variant": "no_transform",
+      "pipeline_description": "Baseline \u2014 Copy with no transformation (control)",
+      "input_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+      "input_dimensions": [
+        3000,
+        2000
+      ],
+      "input_size_bytes": 1506131,
+      "output_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/baseline_no_transform/passthrough.jpg",
+      "output_dimensions": [
+        3000,
+        2000
+      ],
+      "output_size_bytes": 1506131,
+      "output_format": "JPEG",
+      "c2pa_survived": true,
+      "c2pa_validation_status": "VALID_SIGNATURE",
+      "c2pa_errors": [
+        "Trust notice: signingCredential.untrusted \u2014 signing certificate untrusted"
+      ],
+      "size_reduction_pct": 0.0,
+      "steps_applied": [
+        "copy: Byte-for-byte copy (no transformation)"
+      ],
+      "execution_time_ms": 21.1
+    },
+    {
+      "pipeline_platform": "Baseline",
+      "pipeline_variant": "recompress_only_q95",
+      "pipeline_description": "Baseline \u2014 JPEG re-compress at Q=95 (near-lossless, no metadata strip)",
+      "input_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+      "input_dimensions": [
+        3000,
+        2000
+      ],
+      "input_size_bytes": 1506131,
+      "output_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/baseline_recompress_only_q95/preserved_q95.jpg",
+      "output_dimensions": [
+        3000,
+        2000
+      ],
+      "output_size_bytes": 1108819,
+      "output_format": "JPEG",
+      "c2pa_survived": false,
+      "c2pa_validation_status": "NO_MANIFEST",
+      "c2pa_errors": [],
+      "size_reduction_pct": 26.4,
+      "steps_applied": [
+        "recompress: JPEG Q=95 without metadata strip"
+      ],
+      "execution_time_ms": 47.9
+    },
+    {
+      "pipeline_platform": "Baseline",
+      "pipeline_variant": "strip_only",
+      "pipeline_description": "Baseline \u2014 Metadata strip only (no re-compression)",
+      "input_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_assets/signed_test_image.jpg",
+      "input_dimensions": [
+        3000,
+        2000
+      ],
+      "input_size_bytes": 1506131,
+      "output_file": "/Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/baseline_strip_only/output.jpg",
+      "output_dimensions": [
+        3000,
+        2000
+      ],
+      "output_size_bytes": 1698702,
+      "output_format": "JPEG",
+      "c2pa_survived": false,
+      "c2pa_validation_status": "NO_MANIFEST",
+      "c2pa_errors": [],
+      "size_reduction_pct": -12.8,
+      "steps_applied": [
+        "strip_metadata: Strip metadata only",
+        "save: Re-save JPEG at Q=100"
+      ],
+      "execution_time_ms": 628.2
+    }
+  ],
+  "summary": {
+    "total_tests": 11,
+    "c2pa_survived_count": 1,
+    "c2pa_destroyed_count": 10,
+    "survival_rate_pct": 9.1,
+    "by_platform": {
+      "Facebook": {
+        "total_tests": 3,
+        "c2pa_survived": 0,
+        "c2pa_destroyed": 3,
+        "survival_rate_pct": 0.0
+      },
+      "Instagram": {
+        "total_tests": 3,
+        "c2pa_survived": 0,
+        "c2pa_destroyed": 3,
+        "survival_rate_pct": 0.0
+      },
+      "WhatsApp": {
+        "total_tests": 2,
+        "c2pa_survived": 0,
+        "c2pa_destroyed": 2,
+        "survival_rate_pct": 0.0
+      },
+      "Baseline": {
+        "total_tests": 3,
+        "c2pa_survived": 1,
+        "c2pa_destroyed": 2,
+        "survival_rate_pct": 33.3
+      }
+    }
+  }
+}

@@ -477,7 +477,7 @@ Ensure each artifact is committed to your thesis repository and ready for discus
 | 7 | **Legal-Technical Cross-Walk** (§4.1) | `thesis/docs/month_1/legal_technical_crosswalk.md` | Markdown table | ☐ |
 | 8 | **C2PA vs. SynthID-Text Comparison** | `thesis/docs/month_1/c2pa_vs_synthid_comparison.md` | Markdown table | ☐ |
 | 9 | **Tool Functional Requirements Spec v0.1** | `thesis/docs/month_1/tool_requirements_v01.md` | Structured spec | ☐ |
-| 10 | **Entropy Analysis Script + Results** | `thesis/docs/month_1/scripts/entropy_analysis.py` | Python | ☐ |
+| 10 | **Entropy Analysis Script + Results** | `thesis/docs/month_1/scripts/entropy_analysis.py` | Python | ☑ |
 | 11 | **Draft Chapter 2 outline** (section headings + 1-para summaries) | `thesis/docs/month_1/chapter2_outline.md` | Markdown | ☐ |
 
 ### 4.6 Week 4 Schedule

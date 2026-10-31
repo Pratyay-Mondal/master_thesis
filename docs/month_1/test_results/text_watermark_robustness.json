@@ -1,0 +1,225 @@
+{
+  "thesis": "AI Transparency in the Wild",
+  "week": 3,
+  "generated_at": "2026-10-31T12:04:57.241639+00:00",
+  "parameters": {
+    "secret_key_name": "THWS_Thesis_Secret_Key_2026",
+    "bias": 2.5,
+    "z_threshold": 3.0,
+    "seed": 42
+  },
+  "results": [
+    {
+      "name": "human_control",
+      "description": "Unwatermarked prose (null)",
+      "n_chars": 981,
+      "scored_tokens": 165,
+      "green_count": 78,
+      "green_proportion": 0.4727,
+      "z_score": -0.7006,
+      "p_value": 0.7582389700659755,
+      "above_threshold": false,
+      "snippet": "The European Parliament and the Council of the European Union recently finalised the landmark AI Act. Under Article 50, providers and deployers of generative..."
+    },
+    {
+      "name": "watermarked_source",
+      "description": "Green-list rewrite, unmodified",
+      "n_chars": 1434,
+      "scored_tokens": 262,
+      "green_count": 241,
+      "green_proportion": 0.9198,
+      "z_score": 13.5916,
+      "p_value": 2.2443725951490586e-42,
+      "above_threshold": true,
+      "snippet": "Article 50 at the Deepfake Union AI Act although assistive to mark synthetic text at a applies- readable around also remains detectable about transparency. O..."
+    },
+    {
+      "name": "verbatim",
+      "description": "Copy-paste of watermarked text into a post",
+      "n_chars": 1434,
+      "scored_tokens": 262,
+      "green_count": 241,
+      "green_proportion": 0.9198,
+      "z_score": 13.5916,
+      "p_value": 2.2443725951490586e-42,
+      "above_threshold": true,
+      "snippet": "Article 50 at the Deepfake Union AI Act although assistive to mark synthetic text at a applies- readable around also remains detectable about transparency. O..."
+    },
+    {
+      "name": "char_substitution",
+      "description": "Keyboard-neighbour typos (~6% of letters)",
+      "n_chars": 1434,
+      "scored_tokens": 262,
+      "green_count": 194,
+      "green_proportion": 0.7405,
+      "z_score": 7.7843,
+      "p_value": 3.5048457722899505e-15,
+      "above_threshold": true,
+      "snippet": "Article 50 at the Dsepfake Union AI Act although assistive to maek sunthetid texg at a applies- readable aroumd alsk remains detectable aboyt transparency. O..."
+    },
+    {
+      "name": "word_substitution",
+      "description": "Casual lexical edits (~12% of content words)",
+      "n_chars": 1427,
+      "scored_tokens": 262,
+      "green_count": 225,
+      "green_proportion": 0.8588,
+      "z_score": 11.6147,
+      "p_value": 1.7354516640487974e-31,
+      "above_threshold": true,
+      "snippet": "Article 50 at the Deepfake Union AI Act although assistive to mark synthetic text at a applies- readable around also remains detectable about transparency. O..."
+    },
+    {
+      "name": "caption_truncation",
+      "description": "Mobile feed clip: first 50 words",
+      "n_chars": 305,
+      "scored_tokens": 55,
+      "green_count": 51,
+      "green_proportion": 0.9273,
+      "z_score": 6.3375,
+      "p_value": 1.1677773721638597e-10,
+      "above_threshold": true,
+      "snippet": "Article 50 at the Deepfake Union AI Act although assistive to mark synthetic text at a applies- readable around also remains detectable about transparency. O..."
+    },
+    {
+      "name": "severe_truncation",
+      "description": "Very short caption / snippet: first 12 words",
+      "n_chars": 66,
+      "scored_tokens": 11,
+      "green_count": 11,
+      "green_proportion": 1.0,
+      "z_score": 3.3166,
+      "p_value": 0.0004555594385768564,
+      "above_threshold": true,
+      "snippet": "Article 50 at the Deepfake Union AI Act although assistive to mark"
+    },
+    {
+      "name": "paraphrase",
+      "description": "Drop modifiers + rewrite ~40% of content words",
+      "n_chars": 1277,
+      "scored_tokens": 255,
+      "green_count": 181,
+      "green_proportion": 0.7098,
+      "z_score": 6.7006,
+      "p_value": 1.0378280975401696e-11,
+      "above_threshold": true,
+      "snippet": "Article 50 at the Deepfake case AI Act change issue to mark synthetic text at a applies- readable change also stays point about shift. On social media platfo..."
+    },
+    {
+      "name": "translation_de",
+      "description": "EN\u2192DE proxy for platform auto-translate (all tokens change)",
+      "n_chars": 1690,
+      "scored_tokens": 262,
+      "green_count": 121,
+      "green_proportion": 0.4618,
+      "z_score": -1.2356,
+      "p_value": 0.8916971249401808,
+      "above_threshold": false,
+      "snippet": "Artikel 50 atisch der Deepheit Union AILICH Gesetz althung assilich zu markieren synthetisch Text atisch ein appung- lesbar arokeit alheit bleibt erkennbar a..."
+    },
+    {
+      "name": "translation_es",
+      "description": "EN\u2192ES proxy for platform auto-translate (all tokens change)",
+      "n_chars": 1632,
+      "scored_tokens": 264,
+      "green_count": 155,
+      "green_proportion": 0.5871,
+      "z_score": 2.8311,
+      "p_value": 0.0023193796386181717,
+      "above_threshold": false,
+      "snippet": "Art\u00edculo 50 atoso el Deepmente Uni\u00f3n AIIDAD Ley althci\u00f3n assiidad a maidad sint\u00e9tico texto atoso un appci\u00f3n- legible aroar almente remmente detectable abar t..."
+    },
+    {
+      "name": "emoji_hashtag_noise",
+      "description": "Emoji/hashtag stuffing around an intact span",
+      "n_chars": 1481,
+      "scored_tokens": 277,
+      "green_count": 247,
+      "green_proportion": 0.8917,
+      "z_score": 13.0383,
+      "p_value": 3.706166922656534e-39,
+      "above_threshold": true,
+      "snippet": "\u2705 \u26a0\ufe0f \ud83d\udccc #Meta #AIAct #SynthID Article 50 at the Deepfake Union AI Act although assistive to mark synthetic text at a applies- readable around also remains det..."
+    },
+    {
+      "name": "other_lm_rewrite",
+      "description": "Rewrite with a different keyed sampler (paste into another LLM)",
+      "n_chars": 1436,
+      "scored_tokens": 262,
+      "green_count": 139,
+      "green_proportion": 0.5305,
+      "z_score": 0.9885,
+      "p_value": 0.16145800435727908,
+      "above_threshold": false,
+      "snippet": "Article 50 at act Accuracy After AI Any accuracy assistive an back synthetic also as i already- accuracy across back already accessible about distribution. A..."
+    },
+    {
+      "name": "full_shuffle",
+      "description": "Adversarial bag-of-words permutation",
+      "n_chars": 1434,
+      "scored_tokens": 262,
+      "green_count": 144,
+      "green_proportion": 0.5496,
+      "z_score": 1.6063,
+      "p_value": 0.05410561228594071,
+      "above_threshold": false,
+      "snippet": "against also so all interest back About another. at applies- act to almost act although prompt disclosed. an A n- satisfy mirroring social after observation ..."
+    }
+  ],
+  "comparison_matrix": [
+    {
+      "dimension": "Carrier",
+      "c2pa": "Hard-bound manifest in the file container (JUMBF / caBX / BMFF)",
+      "synthid_text": "Token identities in the UTF-8 string (no sidecar)"
+    },
+    {
+      "dimension": "Meta image CDN (resize + JPEG/WebP + APP strip)",
+      "c2pa": "0% survival (Week 2: Facebook, Instagram, WhatsApp)",
+      "synthid_text": "Not applicable \u2014 text does not traverse that pipeline"
+    },
+    {
+      "dimension": "Verbatim copy-paste / WhatsApp text forward",
+      "c2pa": "N/A for pure text posts",
+      "synthid_text": "Signal preserved (z remains above threshold if T is large)"
+    },
+    {
+      "dimension": "Truncation / caption clip",
+      "c2pa": "Any byte change invalidates c2pa.hash.data",
+      "synthid_text": "Graceful power loss \u221d \u221aT; short captions may fall below z=3"
+    },
+    {
+      "dimension": "Light edit / typo",
+      "c2pa": "Cliff-edge invalidation",
+      "synthid_text": "Partial degradation; remaining aligned n-grams still score"
+    },
+    {
+      "dimension": "Paraphrase / other-LM rewrite",
+      "c2pa": "N/A",
+      "synthid_text": "Severe to total loss of green-list alignment"
+    },
+    {
+      "dimension": "Platform machine translation",
+      "c2pa": "N/A",
+      "synthid_text": "Total loss (new tokens, new language, broken context hashes)"
+    },
+    {
+      "dimension": "Third-party verifiability",
+      "c2pa": "Yes, given a public trust list",
+      "synthid_text": "No \u2014 requires the provider key or a detection API"
+    },
+    {
+      "dimension": "Art. 50(2) robustness/reliability on Meta",
+      "c2pa": "Fails for images at ingestion",
+      "synthid_text": "Holds for intact text; fails rewrite/MT; length-dependent"
+    },
+    {
+      "dimension": "Art. 50(5) first-exposure disclosure",
+      "c2pa": "Credential UI rarely surfaced in FB/IG feeds",
+      "synthid_text": "Invisible by design \u2014 cannot satisfy 50(5) alone"
+    }
+  ],
+  "interpretation": {
+    "week2_c2pa": "Hard-bound image credentials showed 0% survival under Meta ingestion.",
+    "week3_text": "Statistical watermarks are not container metadata: verbatim posts keep the signal, truncation costs power, paraphrase/typos degrade it, and translation or shuffle behave like a rewrite."
+  }
+}

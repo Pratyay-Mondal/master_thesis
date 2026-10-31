@@ -3,4 +3,7 @@ pandoc-3.12-arm64/
 _extracted_text/
 __pycache__/
 *.pyc
+.vscode/
+
+.env
 

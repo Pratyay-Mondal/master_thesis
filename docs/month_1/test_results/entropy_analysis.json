@@ -1,0 +1,771 @@
+{
+  "meta": {
+    "script": "entropy_analysis.py",
+    "ngram_order": 3,
+    "nudge_threshold_bits": 2.5
+  },
+  "results": [
+    {
+      "label": "creative_prose",
+      "sample_text": "The ancient lighthouse stood sentinel against the churning sea, its beam cutting through fog like a golden blade. Sailors whispered that on moonless nights, the keeper's ghost still climbed the stairs.",
+      "char_count": 201,
+      "token_count": 37,
+      "unique_tokens": 32,
+      "type_token_ratio": 0.865,
+      "ngram_order": 3,
+      "shannon_ngram_entropy": 7.35,
+      "avg_conditional_entropy_per_char": 0.894,
+      "avg_token_entropy_bits": 4.859,
+      "nudgeable_tokens_count": 27,
+      "nudgeable_ratio_pct": 73.0,
+      "watermark_density_tier": "HIGH",
+      "theoretical_max_watermark_bits": 26.97,
+      "token_details": [
+        {
+          "token": "The",
+          "char_len": 3,
+          "conditional_entropy_bits": 8.23,
+          "is_nudgeable": true
+        },
+        {
+          "token": "ancient",
+          "char_len": 7,
+          "conditional_entropy_bits": 1.918,
+          "is_nudgeable": false
+        },
+        {
+          "token": "lighthouse",
+          "char_len": 10,
+          "conditional_entropy_bits": 12.992,
+          "is_nudgeable": true
+        },
+        {
+          "token": "stood",
+          "char_len": 5,
+          "conditional_entropy_bits": 4.507,
+          "is_nudgeable": true
+        },
+        {
+          "token": "sentinel",
+          "char_len": 8,
+          "conditional_entropy_bits": 10.036,
+          "is_nudgeable": true
+        },
+        {
+          "token": "against",
+          "char_len": 7,
+          "conditional_entropy_bits": 3.085,
+          "is_nudgeable": true
+        },
+        {
+          "token": "the",
+          "char_len": 3,
+          "conditional_entropy_bits": 3.714,
+          "is_nudgeable": true
+        },
+        {
+          "token": "churning",
+          "char_len": 8,
+          "conditional_entropy_bits": 6.615,
+          "is_nudgeable": true
+        },
+        {
+          "token": "sea",
+          "char_len": 3,
+          "conditional_entropy_bits": 5.7,
+          "is_nudgeable": true
+        },
+        {
+          "token": ",",
+          "char_len": 1,
+          "conditional_entropy_bits": 1.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "its",
+          "char_len": 3,
+          "conditional_entropy_bits": 4.115,
+          "is_nudgeable": true
+        },
+        {
+          "token": "beam",
+          "char_len": 4,
+          "conditional_entropy_bits": 7.115,
+          "is_nudgeable": true
+        },
+        {
+          "token": "cutting",
+          "char_len": 7,
+          "conditional_entropy_bits": 6.533,
+          "is_nudgeable": true
+        },
+        {
+          "token": "through",
+          "char_len": 7,
+          "conditional_entropy_bits": 6.907,
+          "is_nudgeable": true
+        },
+        {
+          "token": "fog",
+          "char_len": 3,
+          "conditional_entropy_bits": 5.615,
+          "is_nudgeable": true
+        },
+        {
+          "token": "like",
+          "char_len": 4,
+          "conditional_entropy_bits": 5.7,
+          "is_nudgeable": true
+        },
+        {
+          "token": "a",
+          "char_len": 1,
+          "conditional_entropy_bits": 1.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "golden",
+          "char_len": 6,
+          "conditional_entropy_bits": 2.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "blade",
+          "char_len": 5,
+          "conditional_entropy_bits": 5.033,
+          "is_nudgeable": true
+        },
+        {
+          "token": ".",
+          "char_len": 1,
+          "conditional_entropy_bits": 1.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "Sailors",
+          "char_len": 7,
+          "conditional_entropy_bits": 6.7,
+          "is_nudgeable": true
+        },
+        {
+          "token": "whispered",
+          "char_len": 9,
+          "conditional_entropy_bits": 6.115,
+          "is_nudgeable": true
+        },
+        {
+          "token": "that",
+          "char_len": 4,
+          "conditional_entropy_bits": 5.907,
+          "is_nudgeable": true
+        },
+        {
+          "token": "on",
+          "char_len": 2,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "moonless",
+          "char_len": 8,
+          "conditional_entropy_bits": 7.115,
+          "is_nudgeable": true
+        },
+        {
+          "token": "nights",
+          "char_len": 6,
+          "conditional_entropy_bits": 7.615,
+          "is_nudgeable": true
+        },
+        {
+          "token": ",",
+          "char_len": 1,
+          "conditional_entropy_bits": 1.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "the",
+          "char_len": 3,
+          "conditional_entropy_bits": 5.907,
+          "is_nudgeable": true
+        },
+        {
+          "token": "keeper",
+          "char_len": 6,
+          "conditional_entropy_bits": 5.115,
+          "is_nudgeable": true
+        },
+        {
+          "token": "'",
+          "char_len": 1,
+          "conditional_entropy_bits": 1.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "s",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "ghost",
+          "char_len": 5,
+          "conditional_entropy_bits": 6.615,
+          "is_nudgeable": true
+        },
+        {
+          "token": "still",
+          "char_len": 5,
+          "conditional_entropy_bits": 6.762,
+          "is_nudgeable": true
+        },
+        {
+          "token": "climbed",
+          "char_len": 7,
+          "conditional_entropy_bits": 6.7,
+          "is_nudgeable": true
+        },
+        {
+          "token": "the",
+          "char_len": 3,
+          "conditional_entropy_bits": 5.907,
+          "is_nudgeable": true
+        },
+        {
+          "token": "stairs",
+          "char_len": 6,
+          "conditional_entropy_bits": 3.507,
+          "is_nudgeable": true
+        },
+        {
+          "token": ".",
+          "char_len": 1,
+          "conditional_entropy_bits": 1.0,
+          "is_nudgeable": false
+        }
+      ]
+    },
+    {
+      "label": "factual_report",
+      "sample_text": "Isaac Newton published Philosophiæ Naturalis Principia Mathematica on 5 July 1687. The work contains Newton's laws of motion and his law of universal gravitation.",
+      "char_count": 162,
+      "token_count": 28,
+      "unique_tokens": 25,
+      "type_token_ratio": 0.893,
+      "ngram_order": 3,
+      "shannon_ngram_entropy": 7.105,
+      "avg_conditional_entropy_per_char": 0.881,
+      "avg_token_entropy_bits": 5.096,
+      "nudgeable_tokens_count": 20,
+      "nudgeable_ratio_pct": 71.4,
+      "watermark_density_tier": "HIGH",
+      "theoretical_max_watermark_bits": 21.4,
+      "token_details": [
+        {
+          "token": "Isaac",
+          "char_len": 5,
+          "conditional_entropy_bits": 9.993,
+          "is_nudgeable": true
+        },
+        {
+          "token": "Newton",
+          "char_len": 6,
+          "conditional_entropy_bits": 4.496,
+          "is_nudgeable": true
+        },
+        {
+          "token": "published",
+          "char_len": 9,
+          "conditional_entropy_bits": 8.792,
+          "is_nudgeable": true
+        },
+        {
+          "token": "Philosophiæ",
+          "char_len": 11,
+          "conditional_entropy_bits": 7.666,
+          "is_nudgeable": true
+        },
+        {
+          "token": "Naturalis",
+          "char_len": 9,
+          "conditional_entropy_bits": 7.996,
+          "is_nudgeable": true
+        },
+        {
+          "token": "Principia",
+          "char_len": 9,
+          "conditional_entropy_bits": 6.415,
+          "is_nudgeable": true
+        },
+        {
+          "token": "Mathematica",
+          "char_len": 11,
+          "conditional_entropy_bits": 10.0,
+          "is_nudgeable": true
+        },
+        {
+          "token": "on",
+          "char_len": 2,
+          "conditional_entropy_bits": 4.496,
+          "is_nudgeable": true
+        },
+        {
+          "token": "5",
+          "char_len": 1,
+          "conditional_entropy_bits": 1.792,
+          "is_nudgeable": false
+        },
+        {
+          "token": "July",
+          "char_len": 4,
+          "conditional_entropy_bits": 8.993,
+          "is_nudgeable": true
+        },
+        {
+          "token": "1687",
+          "char_len": 4,
+          "conditional_entropy_bits": 4.496,
+          "is_nudgeable": true
+        },
+        {
+          "token": ".",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "The",
+          "char_len": 3,
+          "conditional_entropy_bits": 4.496,
+          "is_nudgeable": true
+        },
+        {
+          "token": "work",
+          "char_len": 4,
+          "conditional_entropy_bits": 1.585,
+          "is_nudgeable": false
+        },
+        {
+          "token": "contains",
+          "char_len": 8,
+          "conditional_entropy_bits": 8.289,
+          "is_nudgeable": true
+        },
+        {
+          "token": "Newton",
+          "char_len": 6,
+          "conditional_entropy_bits": 4.496,
+          "is_nudgeable": true
+        },
+        {
+          "token": "'",
+          "char_len": 1,
+          "conditional_entropy_bits": 1.792,
+          "is_nudgeable": false
+        },
+        {
+          "token": "s",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "laws",
+          "char_len": 4,
+          "conditional_entropy_bits": 5.496,
+          "is_nudgeable": true
+        },
+        {
+          "token": "of",
+          "char_len": 2,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "motion",
+          "char_len": 6,
+          "conditional_entropy_bits": 5.415,
+          "is_nudgeable": true
+        },
+        {
+          "token": "and",
+          "char_len": 3,
+          "conditional_entropy_bits": 6.289,
+          "is_nudgeable": true
+        },
+        {
+          "token": "his",
+          "char_len": 3,
+          "conditional_entropy_bits": 6.081,
+          "is_nudgeable": true
+        },
+        {
+          "token": "law",
+          "char_len": 3,
+          "conditional_entropy_bits": 5.415,
+          "is_nudgeable": true
+        },
+        {
+          "token": "of",
+          "char_len": 2,
+          "conditional_entropy_bits": 1.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "universal",
+          "char_len": 9,
+          "conditional_entropy_bits": 5.496,
+          "is_nudgeable": true
+        },
+        {
+          "token": "gravitation",
+          "char_len": 11,
+          "conditional_entropy_bits": 9.915,
+          "is_nudgeable": true
+        },
+        {
+          "token": ".",
+          "char_len": 1,
+          "conditional_entropy_bits": 1.792,
+          "is_nudgeable": false
+        }
+      ]
+    },
+    {
+      "label": "python_code",
+      "sample_text": "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)",
+      "char_count": 92,
+      "token_count": 28,
+      "unique_tokens": 14,
+      "type_token_ratio": 0.5,
+      "ngram_order": 3,
+      "shannon_ngram_entropy": 5.342,
+      "avg_conditional_entropy_per_char": 0.603,
+      "avg_token_entropy_bits": 1.981,
+      "nudgeable_tokens_count": 7,
+      "nudgeable_ratio_pct": 25.0,
+      "watermark_density_tier": "INEFFECTIVE",
+      "theoretical_max_watermark_bits": 8.32,
+      "token_details": [
+        {
+          "token": "def",
+          "char_len": 3,
+          "conditional_entropy_bits": 7.801,
+          "is_nudgeable": true
+        },
+        {
+          "token": "fibonacci",
+          "char_len": 9,
+          "conditional_entropy_bits": 3.901,
+          "is_nudgeable": true
+        },
+        {
+          "token": "(",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "n",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": ")",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.918,
+          "is_nudgeable": false
+        },
+        {
+          "token": ":",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "if",
+          "char_len": 2,
+          "conditional_entropy_bits": 3.901,
+          "is_nudgeable": true
+        },
+        {
+          "token": "n",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "<",
+          "char_len": 1,
+          "conditional_entropy_bits": 3.901,
+          "is_nudgeable": false
+        },
+        {
+          "token": "=",
+          "char_len": 1,
+          "conditional_entropy_bits": 3.901,
+          "is_nudgeable": false
+        },
+        {
+          "token": "1",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": ":",
+          "char_len": 1,
+          "conditional_entropy_bits": 3.901,
+          "is_nudgeable": false
+        },
+        {
+          "token": "return",
+          "char_len": 6,
+          "conditional_entropy_bits": 3.901,
+          "is_nudgeable": true
+        },
+        {
+          "token": "n",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "return",
+          "char_len": 6,
+          "conditional_entropy_bits": 7.801,
+          "is_nudgeable": true
+        },
+        {
+          "token": "fibonacci",
+          "char_len": 9,
+          "conditional_entropy_bits": 3.901,
+          "is_nudgeable": true
+        },
+        {
+          "token": "(",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "n",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "-",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.918,
+          "is_nudgeable": false
+        },
+        {
+          "token": "1",
+          "char_len": 1,
+          "conditional_entropy_bits": 1.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": ")",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "+",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "fibonacci",
+          "char_len": 9,
+          "conditional_entropy_bits": 7.801,
+          "is_nudgeable": true
+        },
+        {
+          "token": "(",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "n",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "-",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.918,
+          "is_nudgeable": false
+        },
+        {
+          "token": "2",
+          "char_len": 1,
+          "conditional_entropy_bits": 1.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": ")",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        }
+      ]
+    },
+    {
+      "label": "social_media_caption",
+      "sample_text": "Just saw the most amazing sunset at the beach today! The colors were unreal 🌅 #blessed #nature #photography",
+      "char_count": 107,
+      "token_count": 22,
+      "unique_tokens": 18,
+      "type_token_ratio": 0.818,
+      "ngram_order": 3,
+      "shannon_ngram_entropy": 6.574,
+      "avg_conditional_entropy_per_char": 0.882,
+      "avg_token_entropy_bits": 4.291,
+      "nudgeable_tokens_count": 17,
+      "nudgeable_ratio_pct": 77.3,
+      "watermark_density_tier": "MEDIUM",
+      "theoretical_max_watermark_bits": 14.16,
+      "token_details": [
+        {
+          "token": "Just",
+          "char_len": 4,
+          "conditional_entropy_bits": 8.385,
+          "is_nudgeable": true
+        },
+        {
+          "token": "saw",
+          "char_len": 3,
+          "conditional_entropy_bits": 4.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "the",
+          "char_len": 3,
+          "conditional_entropy_bits": 4.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "most",
+          "char_len": 4,
+          "conditional_entropy_bits": 4.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "amazing",
+          "char_len": 7,
+          "conditional_entropy_bits": 4.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "sunset",
+          "char_len": 6,
+          "conditional_entropy_bits": 6.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "at",
+          "char_len": 2,
+          "conditional_entropy_bits": 4.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "the",
+          "char_len": 3,
+          "conditional_entropy_bits": 5.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "beach",
+          "char_len": 5,
+          "conditional_entropy_bits": 5.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "today",
+          "char_len": 5,
+          "conditional_entropy_bits": 5.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "!",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "The",
+          "char_len": 3,
+          "conditional_entropy_bits": 4.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "colors",
+          "char_len": 6,
+          "conditional_entropy_bits": 4.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "were",
+          "char_len": 4,
+          "conditional_entropy_bits": 4.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "unreal",
+          "char_len": 6,
+          "conditional_entropy_bits": 8.029,
+          "is_nudgeable": true
+        },
+        {
+          "token": "🌅",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "#",
+          "char_len": 1,
+          "conditional_entropy_bits": 4.193,
+          "is_nudgeable": false
+        },
+        {
+          "token": "blessed",
+          "char_len": 7,
+          "conditional_entropy_bits": 5.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "#",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.0,
+          "is_nudgeable": false
+        },
+        {
+          "token": "nature",
+          "char_len": 6,
+          "conditional_entropy_bits": 5.193,
+          "is_nudgeable": true
+        },
+        {
+          "token": "#",
+          "char_len": 1,
+          "conditional_entropy_bits": 0.918,
+          "is_nudgeable": false
+        },
+        {
+          "token": "photography",
+          "char_len": 11,
+          "conditional_entropy_bits": 7.193,
+          "is_nudgeable": true
+        }
+      ]
+    }
+  ]
+}

@@ -31,7 +31,7 @@ Read in this order. Week 2 showed that **C2PA hard-binding is a container proper
 A language model does not emit a string in one shot. Given preceding tokens $x_{<t} = (x_1,\ldots,x_{t-1})$ and vocabulary $V$, it produces logits $\ell_t(v)$ and a next-token distribution
 
 $$
-p_{\mathrm{LM}}(v \mid x_{<t}) = \mathrm{softmax}(\ell_t)_v.
+p_{\mathrm{LM}}(v \mid x_{\lt t}) = \mathrm{softmax}(\ell_t)_v.
 $$
 
 **Generative watermarking never retrains the model and never writes hidden Unicode.** It only changes *how* $x_t$ is sampled from that distribution, using a secret key $k$. Detection later asks: “Did these tokens win more often than chance under the keyed rule?”
@@ -277,7 +277,7 @@ Translation is worse than paraphrase: it changes tokenisation *and* language mod
 Statistical text watermarking (Kirchenbauer et al., SynthID-Text, Anthropic Claude) operates without hidden metadata by perturbing token selection during autoregressive sampling. However, the capacity to inject a watermark without perceptual distortion or semantic corruption is strictly bounded by the **conditional entropy** of the language model's output distribution at each generation step:
 
 $$
-H(X_t \mid X_{<t}) = -\sum_{v \in V} p(v \mid X_{<t}) \log_2 p(v \mid X_{<t}).
+H(X_t \mid X_{\lt t}) = -\sum_{v \in V} p(v \mid X_{\lt t}) \log_2 p(v \mid X_{\lt t}).
 $$
 
 Where conditional entropy is high (multiple plausible continuations), the sampler can freely select a green-list token from the candidate pool. Where entropy collapses to near-zero (deterministic completions), shifting logits ($\delta$) either fails to alter token choice or forces syntactically illegal / hallucinated words.

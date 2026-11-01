@@ -259,7 +259,7 @@ Translation is worse than paraphrase: it changes tokenisation *and* language mod
 | Perturbation | Typical effect |
 |:---|:---|
 | Typos, keyboard-neighbour substitutions | Mild if word-level tokenisation still matches; harsher under BPE (one typo → different subwords → context break) |
-| Emoji / hashtag / URL stuffing | Adds unwatermarked tokens, dilutes $|s|_G/T$ |
+| Emoji / hashtag / URL stuffing | Adds unwatermarked tokens, dilutes the green-token share |
 | Copy-paste into an image (screenshot) | Text watermark **inapplicable** until OCR; then OCR errors ≈ noise injection |
 | WhatsApp forwarding of the *string* | **Preserves** watermark (no CDN re-encode of text) — opposite of Week 2 image result |
 | Mixing human comments under an AI post | Detector must be run on the *span*, not the thread |

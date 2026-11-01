@@ -30,9 +30,9 @@ Read in this order. Week 2 showed that **C2PA hard-binding is a container proper
 
 A language model does not emit a string in one shot. Given preceding tokens $x_{<t} = (x_1,\ldots,x_{t-1})$ and vocabulary $V$, it produces logits $\ell_t(v)$ and a next-token distribution
 
-$
+$$
 p_{\mathrm{LM}}(v \mid x_{<t}) = \mathrm{softmax}(\ell_t)_v.
-$
+$$
 
 **Generative watermarking never retrains the model and never writes hidden Unicode.** It only changes *how* $x_t$ is sampled from that distribution, using a secret key $k$. Detection later asks: “Did these tokens win more often than chance under the keyed rule?”
 
@@ -49,9 +49,9 @@ This is the right contrast with Week 2:
 
 At each step $t$, a **random seed generator** hashes a sliding window of the last $h$ tokens (an $h$-gram) together with $k$:
 
-$
+$$
 r_t = \mathrm{PRF}_k(x_{t-h},\ldots,x_{t-1}).
-$
+$$
 
 In Kirchenbauer’s public implementation this is typically a hash of the previous token (or a short window) seeding a PRNG. SynthID-Text uses the same sliding-window idea with $H=4$ in the Nature experiments, plus a list of integer `keys` that define independent $g$-function layers.
 
@@ -67,13 +67,13 @@ Cryptographically, $\mathrm{PRF}_k$ should be a keyed HMAC (e.g. HMAC-SHA256), n
 
 Given seed $r_t$, randomly partition $V$ into
 
-$
+$$
 V = G_t \cup R_t, \qquad |G_t| = \gamma |V|.
-$
+$$
 
 Typical default: $\gamma = 1/2$ (equal green/red). Then apply a **soft** watermark: add bias $\delta > 0$ to green logits before softmax:
 
-$
+$$
 \hat{\ell}_t(v) =
 \begin{cases}
 \ell_t(v) + \delta & v \in G_t \\
@@ -81,7 +81,7 @@ $
 \end{cases}
 \qquad
 \hat{p}(v) = \mathrm{softmax}(\hat{\ell}_t)_v.
-$
+$$
 
 The **hard** variant (Algorithm 1 in Kirchenbauer) samples *only* from $G_t$. It is easy to analyse and easy to detect, but it destroys quality on low-entropy spans (“Principia ___” almost has to be “Mathematica”). Production systems use the soft rule.
 
@@ -102,9 +102,9 @@ SynthID-Text (Dathathri et al., 2024) does **not** publish an explicit green lis
 
 Detection does not count green tokens. It averages $g$-values:
 
-$
+$$
 \mathrm{Score}(x) = \frac{1}{mT} \sum_{t=1}^{T} \sum_{\ell=1}^{m} g_\ell(x_t, r_t).
-$
+$$
 
 Watermarked text is biased toward high $g$; human text has $\mathbb{E}[g] \approx 1/2$ per bit. DeepMind also provide a **non-distortionary** configuration (quality-preserving; theoretically the marginal token distribution can match $p_{\mathrm{LM}}$) and a **distortionary** configuration (stronger detectability, quality cost). Tournament sampling was chosen so the scheme can sit *after* top-$k$/top-$p$ and compose with **speculative decoding** — the reason it shipped on Gemini.
 
@@ -138,40 +138,40 @@ This is **not** membership inference against a model. Any party with $k$ can run
 
 ### 2.2 Hypothesis test
 
-$
+$$
 H_0:\ \text{the span was generated with no knowledge of } k
 \qquad\text{(human text, or a different model/key).}
-$
+$$
 
 Under $H_0$, if the PRF is unbiased, each scored token is green independently with probability $\gamma$ (approximation: ignore token-distribution skew). Then
 
-$
+$$
 |s|_G \sim \mathrm{Binomial}(T, \gamma),
 \qquad
 \mathbb{E}[|s|_G] = \gamma T,
 \qquad
 \mathrm{Var}(|s|_G) = \gamma(1-\gamma)T.
-$
+$$
 
 One-proportion $z$-statistic (Kirchenbauer Eq. 2 generalised beyond $\gamma=1/2$):
 
-$
+$$
 z = \frac{|s|_G - \gamma T}{\sqrt{\gamma(1-\gamma)\,T}}.
-$
+$$
 
 For $\gamma = 1/2$ this reduces to $z = 2(|s|_G - T/2)/\sqrt{T}$.
 
 One-sided $p$-value against the upper tail:
 
-$
+$$
 p = 1 - \Phi(z) = \mathbb{P}(Z \ge z \mid H_0),\quad Z\sim\mathcal{N}(0,1).
-$
+$$
 
 Decision rule used in this week’s harness (aligned with Kirchenbauer’s illustrative threshold, slightly relaxed from their $z>4$ example):
 
-$
+$$
 \text{detect if } z > 3.0 \quad (p \approx 1.35\times 10^{-3}).
-$
+$$
 
 Kirchenbauer note that $z>4$ gives a one-sided FPR $\approx 3\times 10^{-5}$. Provider systems typically target even lower FPR ($<10^{-5}$) because falsely labelling a human as AI-generated is a political and legal incident, not just an ML metric.
 
@@ -179,9 +179,9 @@ Kirchenbauer note that $z>4$ gives a one-sided FPR $\approx 3\times 10^{-5}$. Pr
 
 $z$ scales like $\sqrt{T}$ times the excess green rate. If watermarked text achieves green rate $\gamma+\varepsilon$,
 
-$
+$$
 \mathbb{E}[z \mid H_1] \approx \varepsilon \sqrt{\frac{T}{\gamma(1-\gamma)}}.
-$
+$$
 
 Worked example, $\gamma=0.5$, $\varepsilon=0.25$ (green rate 75% — plausible for a strong soft watermark on high-entropy prose):
 
@@ -276,9 +276,9 @@ Translation is worse than paraphrase: it changes tokenisation *and* language mod
 
 Statistical text watermarking (Kirchenbauer et al., SynthID-Text, Anthropic Claude) operates without hidden metadata by perturbing token selection during autoregressive sampling. However, the capacity to inject a watermark without perceptual distortion or semantic corruption is strictly bounded by the **conditional entropy** of the language model's output distribution at each generation step:
 
-$
+$$
 H(X_t \mid X_{<t}) = -\sum_{v \in V} p(v \mid X_{<t}) \log_2 p(v \mid X_{<t}).
-$
+$$
 
 Where conditional entropy is high (multiple plausible continuations), the sampler can freely select a green-list token from the candidate pool. Where entropy collapses to near-zero (deterministic completions), shifting logits ($\delta$) either fails to alter token choice or forces syntactically illegal / hallucinated words.
 

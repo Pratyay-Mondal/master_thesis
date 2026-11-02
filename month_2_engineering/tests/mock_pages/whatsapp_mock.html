@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WhatsApp Web Mock</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #efeae2; padding: 20px; }
+    .chat { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+    .message-in { background: #fff; border-radius: 8px; padding: 8px 12px; align-self: flex-start; max-width: 65%; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); }
+    .message-out { background: #d9fdd3; border-radius: 8px; padding: 8px 12px; align-self: flex-end; max-width: 65%; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); }
+  </style>
+</head>
+<body>
+  <div class="chat">
+    <div role="row">
+      <div class="message-in" data-id="true">
+        <span class="selectable-text copyable-text">Here is the research summary for our thesis progress meeting on Friday.</span>
+      </div>
+    </div>
+    <div role="row">
+      <div class="message-out" data-id="true">
+        <span class="selectable-text copyable-text">Thanks! Did you verify if the C2PA credentials survived the image recompression?</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

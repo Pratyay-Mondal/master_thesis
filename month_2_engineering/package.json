@@ -1,0 +1,17 @@
+{
+  "name": "ai-transparency-validator",
+  "version": "0.1.0",
+  "description": "Client-side provenance extraction and EU AI Act Article 50 transparency validator for social media platforms.",
+  "author": "Pratyay Mondal <p.mondal@student.thws.de>",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint src/**/*.js",
+    "test": "node --test tests/unit/*.test.js"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

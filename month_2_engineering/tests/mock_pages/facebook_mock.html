@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Facebook Feed Mock</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f0f2f5; padding: 20px; }
+    .feed { max-width: 600px; margin: 0 auto; }
+    .post { background: #fff; border-radius: 8px; margin-bottom: 16px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .header { font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; }
+    .content { margin-bottom: 12px; }
+    .media img { width: 100%; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="feed" role="feed">
+    <!-- Post 1: Normal post with image -->
+    <div role="article" class="post" data-pagelet="FeedUnit_0">
+      <div class="header">
+        <span data-ad-rendering-role="profile_name">Alice Developer</span>
+      </div>
+      <div class="content" dir="auto">
+        Testing our new computer vision model deployed on social media. Notice how the compression artifacts degrade subtle image patterns.
+      </div>
+      <div class="media">
+        <img src="https://picsum.photos/600/400?1" alt="Sample 1" width="600" height="400">
+      </div>
+    </div>
+
+    <!-- Post 2: Post with Meta native "Made with AI" badge -->
+    <div role="article" class="post" data-pagelet="FeedUnit_1">
+      <div class="header">
+        <span data-ad-rendering-role="profile_name">Synthetic Creator</span>
+        <span aria-label="Made with AI">🤖 Made with AI</span>
+      </div>
+      <div class="content" dir="auto">
+        A completely synthetic landscape generated with modern generative diffusion architectures.
+      </div>
+      <div class="media">
+        <img src="https://picsum.photos/600/400?2" alt="Sample 2" width="600" height="400">
+      </div>
+    </div>
+  </div>
+</body>
+</html>

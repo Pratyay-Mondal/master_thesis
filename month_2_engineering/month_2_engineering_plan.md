@@ -172,3 +172,4 @@ month_2_engineering/
 ---
 
 *Lead Software Architecture Specification · Month 2 · Pratyay Mondal · THWS M.Sc. AI · November 2026*
+

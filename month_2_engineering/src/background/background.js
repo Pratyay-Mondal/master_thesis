@@ -134,3 +134,4 @@ async function handleQueryTextWatermark(payload, sendResponse) {
     sendResponse({ success: false, error: err.message });
   }
 }
+

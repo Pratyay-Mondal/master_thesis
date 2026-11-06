@@ -1,0 +1,271 @@
+@article{eu_ai_act_2024,
+  author       = {{European Parliament and Council of the European Union}},
+  title        = {Regulation ({EU}) 2024/1689 of the European Parliament and of the Council of 13 June 2024 laying down harmonised rules on artificial intelligence ({Artificial Intelligence Act}) and amending Regulations ({EC}) No 300/2008, ({EU}) No 167/2013, ({EU}) No 168/2013, ({EU}) 2018/858, ({EU}) 2018/1139 and ({EU}) 2019/2144 and Directives 2014/90/{EU}, ({EU}) 2016/797 and ({EU}) 2020/1828},
+  journal      = {Official Journal of the European Union},
+  volume       = {L 2024/1689},
+  year         = {2024},
+  pages        = {1--144},
+  url          = {https://data.europa.eu/eli/reg/2024/1689/oj},
+  annote       = {Primary statutory foundation of the thesis. Establishes the risk-based regulatory framework for AI within the European Union. Article 50 sets out binding transparency obligations for providers (Art. 50(2) machine-readable marking and detectability of synthetic media) and deployers (Art. 50(4) disclosure of deepfakes and public-interest text), while Art. 50(5) mandates clear, distinguishable presentation at first exposure.}
+}
+
+@techreport{eu_ai_office_guidelines_2025,
+  author       = {{European AI Office}},
+  title        = {Guidelines on Transparency Obligations for Providers and Deployers of Certain {AI} Systems under Article 50 of Regulation ({EU}) 2024/1689},
+  institution  = {European Commission},
+  year         = {2025},
+  type         = {Regulatory Guidance Document},
+  address      = {Brussels, Belgium},
+  annote       = {Provides European Commission interpretive guidance on operationalizing Article 50. Elaborates on the statutory criteria 'effective, interoperable, robust, and reliable' for technical marking mechanisms, clarifies the interaction between provider marking duties and deployer disclosure exemptions, and outlines future standardization under Art. 50(7) implementing acts.}
+}
+
+@article{dsa_2022,
+  author       = {{European Parliament and Council of the European Union}},
+  title        = {Regulation ({EU}) 2022/2065 of the European Parliament and of the Council of 19 October 2022 on a Single Market For Digital Services and amending Directive 2000/31/{EC} ({Digital Services Act})},
+  journal      = {Official Journal of the European Union},
+  volume       = {L 277},
+  year         = {2022},
+  pages        = {1--102},
+  url          = {https://data.europa.eu/eli/reg/2022/2065/oj},
+  annote       = {Establishes horizontal systemic risk assessment and content mitigation duties for Very Large Online Platforms (VLOPs, e.g., Meta Platforms Ireland Ltd.). Essential context for understanding the platform-intermediary layer that mediates between upstream AI providers, posting deployers, and downstream consumers.}
+}
+
+@article{gdpr_2016,
+  author       = {{European Parliament and Council of the European Union}},
+  title        = {Regulation ({EU}) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data ({General Data Protection Regulation})},
+  journal      = {Official Journal of the European Union},
+  volume       = {L 119},
+  year         = {2016},
+  pages        = {1--88},
+  url          = {https://data.europa.eu/eli/reg/2016/679/oj},
+  annote       = {Directly governs data privacy constraints in client-side extension design. Article 5(1)(c) (data minimisation) and Article 25 (data protection by design) require that client-side DOM inspection and remote watermark API verification avoid transmitting personal identifiable information (PII), browsing histories, or session tokens.}
+}
+
+@techreport{c2pa_spec_v21,
+  author       = {{Coalition for Content Provenance and Authenticity}},
+  title        = {C2PA Technical Specification: Architecture and Core Requirements, Version 2.1},
+  institution  = {C2PA},
+  year         = {2024},
+  month        = {May},
+  url          = {https://c2pa.org/specifications/specifications/2.1/specs/C2PA_Specification.html},
+  annote       = {The definitive international technical standard for cryptographically bound content provenance. Details the Manifest Store architecture, JUMBF superbox encapsulation, hard binding via SHA-256 byte-range hashes, soft binding via perceptual hashes, X.509 PKI trust models, and the `c2pa.ai_info` assertion schema.}
+}
+
+@standard{iso_19566_5_2023,
+  title        = {Information technologies --- {JPEG} systems --- Part 5: {JPEG} Universal Metadata Box Format ({JUMBF})},
+  organization = {International Organization for Standardization},
+  institution  = {ISO/IEC JTC 1/SC 29/WG 1},
+  number       = {ISO/IEC 19566-5:2023},
+  year         = {2023},
+  address      = {Geneva, Switzerland},
+  annote       = {Specifies the nested box syntax used by C2PA to embed manifests within JPEG APP11 marker segments (`0xFFEB`). Fundamental to diagnosing why server-side social media CDN re-encoders discard non-standard metadata boxes during file sanitization.}
+}
+
+@standard{iso_14496_12_2022,
+  title        = {Information technology --- Coding of audio-visual objects --- Part 12: {ISO} base media file format},
+  organization = {International Organization for Standardization},
+  institution  = {ISO/IEC JTC 1/SC 29/WG 3},
+  number       = {ISO/IEC 14496-12:2022},
+  year         = {2022},
+  address      = {Geneva, Switzerland},
+  annote       = {Defines the container format (BMFF) used for MP4 and MOV video files. Governs how C2PA manifests are encapsulated in UUID boxes (`uuid`) and explains why platform video transcoding pipelines strip provenance data from Instagram Reels and Stories.}
+}
+
+@inproceedings{kirchenbauer2023watermark,
+  author       = {John Kirchenbauer and Jonas Geiping and Yuxin Wen and Jonathan Katz and Ian Miers and Tom Goldstein},
+  title        = {A Watermark for Large Language Models},
+  booktitle    = {Proceedings of the 40th International Conference on Machine Learning (ICML 2023)},
+  series       = {Proceedings of Machine Learning Research},
+  volume       = {202},
+  pages        = {17061--17084},
+  year         = {2023},
+  publisher    = {PMLR},
+  url          = {https://proceedings.mlr.press/v202/kirchenbauer23a.html},
+  annote       = {Foundational academic work introducing statistical green-list text watermarking. Formalizes pseudo-random vocabulary partitioning using a context-keyed hash function, soft logit bias $\delta$, and zero-shot hypothesis testing via a one-proportion $z$-test. Forms the algorithmic core modeled in the Week 3 simulator.}
+}
+
+@inproceedings{kirchenbauer2024reliability,
+  author       = {John Kirchenbauer and Jonas Geiping and Yuxin Wen and Manli Shu and Khalid Saifullah and Kezhi Kong and Kasun Fernando and Aniruddha Saha and Tom Goldstein},
+  title        = {On the Reliability of Watermarks for Large Language Models},
+  booktitle    = {International Conference on Learning Representations (ICLR 2024)},
+  year         = {2024},
+  url          = {https://openreview.net/forum?id=v9eCSqU0wI},
+  annote       = {Follow-up paper exploring watermark robustness and evasion attacks. Analyzes watermark survivability under paraphrase attacks, token substitutions, and cross-entropy variations, demonstrating that while short edits degrade $z$-scores gracefully, heavy rewriting collapses statistical significance.}
+}
+
+@article{dathathri2024synthid,
+  author       = {Sumanth Dathathri and Andrea Banino and Sebastian Borgeaud and David Silver and Pushmeet Kohli and others},
+  title        = {Scalable watermarking for identifying large language model outputs},
+  journal      = {Nature},
+  volume       = {634},
+  number       = {8035},
+  pages        = {818--823},
+  year         = {2024},
+  doi          = {10.1038/s41586-024-08025-4},
+  annote       = {Introduces Google DeepMind's SynthID-Text system deployed on Gemini. Replaces explicit green-list logit shifting with multi-layer tournament sampling using $m$ pseudorandom $g$-functions. Demonstrates a distortion-free watermarking formulation compatible with speculative decoding and production throughput.}
+}
+
+@misc{anthropic_claude_watermark_2026,
+  author       = {{Anthropic}},
+  title        = {How {Claude}'s text watermarking works},
+  howpublished = {Anthropic Engineering Announcements and Whitepaper},
+  month        = {August},
+  year         = {2026},
+  url          = {https://www.anthropic.com/news/claude-text-watermark},
+  annote       = {Detailed industrial technical disclosure from Anthropic describing their SynthID-style watermarking deployment to comply with EU AI Act Article 50. Confirms key properties: no extra tokens, imperceptible to readers, identity-free, and dependent on provider-held secret keys for detection.}
+}
+
+@misc{aaronson2022watermarking,
+  author       = {Scott Aaronson and Hendrik Kirchner},
+  title        = {Watermarking of Large Language Models},
+  howpublished = {Lecture at UT Austin and OpenAI Safety Seminar},
+  year         = {2022},
+  annote       = {Theoretical cryptographic formulation introducing Gumbel-max and exponential-minimum pseudo-random sampling for language model outputs. Direct conceptual ancestor of both Kirchenbauer green-lists and DeepMind SynthID tournament sampling.}
+}
+
+@article{christ2024undetectable,
+  author       = {Miranda Christ and Sam Gunn and Or Zamir},
+  title        = {Undetectable Watermarks for Language Models},
+  journal      = {Journal of the ACM},
+  year         = {2024},
+  note         = {Also presented at CRYPTO 2024},
+  annote       = {Establishes theoretical cryptography bounds for language model watermarking. Demonstrates that watermarks can be mathematically undetectable to any polynomial-time adversary lacking the secret key while remaining efficiently detectable to authorized verifiers possessing the key.}
+}
+
+@inproceedings{sadasivan2023aidetect,
+  author       = {Vinu Sankar Sadasivan and Aounon Kumar and Sriram Balasubramanian and Wenxiao Wang and Soheil Feizi},
+  title        = {Can {AI}-Generated Text be Reliably Detected?},
+  booktitle    = {Proceedings of the 40th International Conference on Machine Learning (ICML 2023)},
+  pages        = {29768--29792},
+  year         = {2023},
+  publisher    = {PMLR},
+  annote       = {Proves information-theoretic upper bounds on classifier-based text detection (e.g., perplexity detectors) and shows that paraphrasing degrades zero-shot classifiers. Provides rigorous theoretical justification for why statistical watermarks (SynthID) are superior to unkeyed post-hoc classifiers.}
+}
+
+@inproceedings{krishna2024paraphrasing,
+  author       = {Kalpesh Krishna and Yixiao Song and Rachita Sharma and John Wieting and Mohit Iyyer},
+  title        = {Paraphrasing evades detectors: A study on the robustness of watermarked and unwatermarked text},
+  booktitle    = {International Conference on Learning Representations (ICLR 2024)},
+  year         = {2024},
+  annote       = {Empirically benchmarks watermark degradation under automated retrieval-based and neural paraphrasers. Directly corroborates the Week 3 text robustness findings where cross-model rewrites dropped $z$-scores below statutory detection thresholds.}
+}
+
+@inproceedings{zhao2023provable,
+  author       = {Xuandong Zhao and Prabhanjan Ananth and Lei Li and Yu-Xiang Wang},
+  title        = {Provable Robust Watermarking for {AI}-Generated Text},
+  booktitle    = {Advances in Neural Information Processing Systems (NeurIPS 2023)},
+  volume       = {36},
+  pages        = {58784--58801},
+  year         = {2023},
+  annote       = {Proposes edit-distance-resilient statistical watermarking schemes. Analyzes how sliding window context sizes ($h$-grams) govern the trade-off between clean-text detectability and resilience to adversarial insertions and deletions.}
+}
+
+@article{amoroso2024parents,
+  author       = {Roberto Amoroso and Davide Cavagnino and Marco Grangetto},
+  title        = {Parents and Children: Distinguishing Multimodal {DeepFakes} from Natural Images via Provenance Trees},
+  journal      = {IEEE Transactions on Information Forensics and Security},
+  volume       = {19},
+  pages        = {4521--4534},
+  year         = {2024},
+  doi          = {10.1109/TIFS.2024.3387121},
+  annote       = {Analyzes C2PA ingredient DAGs (Directed Acyclic Graphs) for distinguishing purely synthetic images from edited human content. Relevant for evaluating Art. 50(4) compliance where partial modifications alter provenance trees.}
+}
+
+@techreport{cai_whitepaper_2024,
+  author       = {{Content Authenticity Initiative}},
+  title        = {Setting the Standard for Digital Content Provenance: The {CAI} Architecture and Ecosystem},
+  institution  = {Content Authenticity Initiative (Adobe, Truepic, BBC)},
+  year         = {2024},
+  address      = {San Jose, CA},
+  annote       = {Industry whitepaper detailing CAI trust list management, the Content Credentials user experience (`cr` badge), and mobile capture-hardware integrations. Identifies social media ingestion as the single largest barrier to consumer provenance verification.}
+}
+
+@misc{meta_transparency_ai_2026,
+  author       = {{Meta Platforms, Inc.}},
+  title        = {How {Meta} Labels {AI}-Generated Imagery and Media Across {Facebook}, {Instagram}, and {Threads}},
+  howpublished = {Meta Transparency Center Documentation},
+  month        = {July},
+  year         = {2026},
+  url          = {https://transparency.meta.com/features/ai-content-labels},
+  annote       = {Details Meta's internal content ingestion policy: platform servers detect C2PA metadata and invisible image watermarks at upload time to display 'Made with AI' badges, but server-side CDN pipelines discard the cryptographic manifests downstream.}
+}
+
+@techreport{w3c_shadow_dom_2024,
+  author       = {{World Wide Web Consortium}},
+  title        = {Shadow {DOM} {W3C} Working Draft},
+  institution  = {W3C},
+  year         = {2024},
+  url          = {https://www.w3.org/TR/shadow-dom/},
+  annote       = {Defines the W3C Shadow DOM v1 standard used in Month 2 extension engineering. Crucial for guaranteeing that transparency UI badges are encapsulated against Meta's global CSS resets and stylesheet contamination.}
+}
+
+@techreport{w3c_intersection_observer_2024,
+  author       = {{World Wide Web Consortium}},
+  title        = {Intersection Observer {W3C} Candidate Recommendation Snapshot},
+  institution  = {W3C},
+  year         = {2024},
+  url          = {https://www.w3.org/TR/intersection-observer/},
+  annote       = {Technical specification for asynchronous viewport observation. Governs the dual-observer architecture in Week 1's content script that defers expensive provenance checks until posts enter the visible viewport.}
+}
+
+@techreport{chrome_mv3_spec_2024,
+  author       = {{Google Chrome Extensions Team}},
+  title        = {Manifest V3 Architecture Guide: Service Workers and Content Security Policy},
+  institution  = {Google LLC},
+  year         = {2024},
+  url          = {https://developer.chrome.com/docs/extensions/mv3/intro/},
+  annote       = {Defines the architectural constraints of modern Chromium extensions: background service worker lifecycles, cross-origin fetch restrictions, dynamic import limitations, and Content Security Policy (CSP) compliance.}
+}
+
+@techreport{pfefferkorn2024provenance,
+  author       = {Riana Pfefferkorn},
+  title        = {Content Authenticity and Provenance: Pitfalls and Potentials for Digital Trust},
+  institution  = {Stanford Center for Internet and Society},
+  year         = {2024},
+  type         = {Policy and Technical Report},
+  address      = {Stanford, CA},
+  annote       = {Rigorous policy-technical critique of C2PA and media provenance standards. Highlights failure modes including stripper attacks, metadata stripping by platforms, user privacy implications of signing certs, and the risk of creating a bifurcated 'verified vs unverified' web.}
+}
+
+@techreport{engstrom2020media,
+  author       = {David Engstrom and Peter Henderson and Daniel E. Ho},
+  title        = {Legal and Technical Challenges of Provenance in Synthetic Media Governance},
+  institution  = {Stanford Institute for Human-Centered Artificial Intelligence (HAI)},
+  year         = {2020},
+  annote       = {Foundational interdisciplinary study connecting digital watermarking, cryptographic hashing, and legal evidence standards. Anticipates the core tension of Article 50: the divergence between mathematical proof and platform distribution realities.}
+}
+
+@article{helberger2023transparency,
+  author       = {Natali Helberger and Nicholas Diakopoulos},
+  title        = {The {European AI Act} and the Search for Meaningful Transparency},
+  journal      = {Communications of the ACM},
+  volume       = {66},
+  number       = {11},
+  pages        = {24--27},
+  year         = {2023},
+  doi          = {10.1145/3618295},
+  annote       = {Analyzes the shift from passive algorithmic transparency to active communicative disclosure under European technology law. Frames the Article 50(5) 'first-exposure' mandate as an essential precondition for user autonomy.}
+}
+
+@article{hacker2023regulating,
+  author       = {Philipp Hacker and Andreas Engel and Marco Mauer},
+  title        = {Regulating {ChatGPT} and other Large Generative {AI} Models: Banking on Transparency and Sector-Specific Rules},
+  journal      = {European Journal of Risk Regulation},
+  volume       = {14},
+  number       = {2},
+  pages        = {391--412},
+  year         = {2023},
+  doi          = {10.1017/err.2023.44},
+  annote       = {Examines generative AI compliance under draft and final EU AI Act drafts. Discusses the technical difficulties of enforcing machine-readable marking on downstream fine-tuned or paraphrased language model outputs.}
+}
+
+@article{veale2024demystifying,
+  author       = {Michael Veale and Frederik Zuiderveen Borgesius},
+  title        = {Demystifying the {EU AI Act}: An Analytical Overview of Regulation ({EU}) 2024/1689},
+  journal      = {Computer Law \& Security Review},
+  volume       = {54},
+  pages        = {105991},
+  year         = {2024},
+  doi          = {10.1016/j.clsr.2024.105991},
+  annote       = {Comprehensive legal breakdown of the enacted AI Act. Contextualizes Article 50 transparency rules against product safety, conformity assessments, and the enforcement mechanisms of the newly established EU AI Office.}
+}

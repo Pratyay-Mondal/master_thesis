@@ -15,3 +15,4 @@
     console.error('[AI-Transparency-Validator] Failed to dynamically bootstrap content script:', err);
   }
 })();
+

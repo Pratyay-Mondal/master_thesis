@@ -25,3 +25,4 @@ export const Logger = {
     console.log(`${PREFIX} [${category}]`, payload);
   }
 };
+

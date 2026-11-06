@@ -79,3 +79,4 @@ Open Developer Tools (`F12` / `Cmd+Option+I`) to observe the `[AI-Transparency-V
 2. **Resilient Selectors:** Instead of fragile, obfuscated class names (`.x1yzt...`), `platform_adapters.js` targets stable ARIA roles (`role="article"`, `role="feed"`, `role="row"`), data attributes (`data-pagelet`), and semantic structural trees.
 3. **Shadow DOM Encapsulation:** `ui_injector.js` attaches an isolated shadow root (`mode: 'open'`) to anchor points in post headers. This prevents Meta's global CSS resets from distorting the transparency badges, and prevents badge styles from bleeding into the host feed (fulfilling **FR-04** and **Art. 50(5)**).
 4. **GDPR Data Minimisation (NFR-01):** The service worker (`background.js`) fetches media buffers without sending cookies or session headers, ensuring zero user identity leakage during external provenance checks.
+

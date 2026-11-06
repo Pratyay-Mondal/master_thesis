@@ -212,3 +212,4 @@ export class PlatformAdapters {
     return indicators.some(indicator => combinedText.includes(indicator));
   }
 }
+

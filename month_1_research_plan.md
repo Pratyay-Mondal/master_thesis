@@ -468,12 +468,12 @@ Ensure each artifact is committed to your thesis repository and ready for discus
 
 | # | Deliverable | Location | Format | Status |
 |:---:|:---|:---|:---|:---:|
-| 1 | **Annotated Bibliography** (≥25 entries) | `thesis/docs/month_1/bibliography.bib` | BibTeX | ☐ |
-| 2 | **Article 50 Compliance Matrix** | `thesis/docs/month_1/art50_compliance_matrix.md` | Markdown table | ☐ |
-| 3 | **C2PA Technical Breakdown** (4pp) | `thesis/docs/month_1/c2pa_analysis.md` | Markdown | ☐ |
-| 4 | **C2PA Survival Test Log** | `thesis/docs/month_1/c2pa_survival_tests.md` | Markdown + screenshots | ☐ |
-| 5 | **SynthID-Text Mechanism Summary** (4pp) | `thesis/docs/month_1/synthid_text_analysis.md` | Markdown | ☐ |
-| 6 | **Perturbation Resilience Table** | `thesis/docs/month_1/perturbation_analysis.md` | Markdown table | ☐ |
+| 1 | **Annotated Bibliography** (≥25 entries) | `thesis/docs/month_1/bibliography.bib` | BibTeX | ☑ |
+| 2 | **Article 50 Compliance Matrix** | `thesis/docs/month_1/art50_compliance_matrix.md` | Markdown table | ☑ |
+| 3 | **C2PA Technical Breakdown** (4pp) | `thesis/docs/month_1/c2pa_analysis.md` | Markdown | ☑ |
+| 4 | **C2PA Survival Test Log** | `thesis/docs/month_1/c2pa_survival_tests.md` | Markdown + screenshots | ☑ |
+| 5 | **SynthID-Text Mechanism Summary** (4pp) | `thesis/docs/month_1/synthid_text_analysis.md` | Markdown | ☑ |
+| 6 | **Perturbation Resilience Table** | `thesis/docs/month_1/perturbation_analysis.md` | Markdown table | ☑ |
 | 7 | **Legal-Technical Cross-Walk** (§4.1) | `thesis/docs/month_1/legal_technical_crosswalk.md` | Markdown table | ☑ |
 | 8 | **C2PA vs. SynthID-Text Comparison** | `thesis/docs/month_1/c2pa_vs_synthid_comparison.md` | Markdown table | ☑ |
 | 9 | **Tool Functional Requirements Spec v0.1** | `thesis/docs/month_1/tool_requirements_v01.md` | Structured spec | ☑ |

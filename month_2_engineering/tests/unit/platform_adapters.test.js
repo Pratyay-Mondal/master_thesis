@@ -70,3 +70,4 @@ test('Platform Native Label Detection', async (t) => {
     assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.FACEBOOK, mockPost), false);
   });
 });
+

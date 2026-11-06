@@ -232,3 +232,4 @@ if (document.readyState === 'loading') {
 } else {
   validator.init();
 }
+

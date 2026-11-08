@@ -115,7 +115,8 @@ Layer 3: SEMANTIC METADATA OBLITERATION
 
 The following screenshot references document the experimental execution and terminal output logs for inclusion in Thesis Chapter 2 and Appendix B:
 
-![Terminal Execution of c2pa_inspector.py on Baseline Asset](file:///Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/evidence_baseline_valid.png)
+![Terminal Execution of c2pa_inspector.py on Baseline Asset](<img width="3000" height="2000" alt="passthrough" src="https://github.com/user-attachments/assets/db2de5d9-89e8-4969-8e14-5f51995e7b90" />
+)
 *Figure 4.1: Terminal output of `c2pa_inspector.py` confirming valid ES256 signature and `c2pa.ai_info` assertions on `signed_test_image.jpg` prior to pipeline transformation.*
 
 ![Terminal Execution of compression_stress_test.py](file:///Users/pratyay/Documents/THWS/thesis/docs/month_1/test_results/evidence_stress_test_run.png)

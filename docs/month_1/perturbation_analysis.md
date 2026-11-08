@@ -27,7 +27,7 @@ The perturbation benchmark evaluates the survivability of **statistical text wat
 
 The table below compiles the empirical results emitted by the test suite across all 13 experimental conditions:
 
-| Condition Name | Lexical / Platform Transformation | Scored Tokens ($T$) | Green Tokens ($|s|_G$) | Green Ratio ($\hat{\gamma}$) | $z$-Statistic | One-Sided $p$-Value | Detection Verdict ($z > 3.0$) | Meta Platform Mapping |
+| Condition Name | Lexical / Platform Transformation | Scored Tokens ($T$) | Green Tokens ($\vert s \vert_G$) | Green Ratio ($\hat{\gamma}$) | $z$-Statistic | One-Sided $p$-Value | Detection Verdict ($z > 3.0$) | Meta Platform Mapping |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---|
 | **`human_control`** | Unwatermarked human text (Negative Control) | 165 | 78 | 0.4727 | **-0.70** | $7.58 \times 10^{-1}$ | ❌ **Null-Consistent** | Genuine human status update or post |
 | **`watermarked_source`**| Unmodified watermarked generation (Positive Control) | 262 | 241 | 0.9198 | **+13.59** | $2.24 \times 10^{-42}$ | ✅ **Detected (Pass)** | Direct output from Claude/Gemini API |

@@ -106,7 +106,7 @@ $$\mathcal{H}_{\text{asset}} = \text{SHA-256}\left( \text{FileBytes} \setminus \
 
 This hash is written into the `c2pa.hash.data` assertion and subsequently sealed within the signed claim. 
 - **Security Property:** Hard binding provides **complete mathematical integrity**. If a single bit in the entropy-coded scan data (`SOS`) or quantization tables (`DQT`) is altered, hash verification fails immediately:
-  $$\text{SHA-256}(\text{ReceivedBytes}) \neq \mathcal{H}_{\text{asset}} \implies \text{Status: INVALID\_HASH}$$
+  $$\text{SHA-256}(\text{ReceivedBytes}) \neq \mathcal{H}_{\text{asset}} \implies \text{INVALID}\_\text{HASH}$$
 - **Vulnerability:** Hard binding treats media as an arbitrary byte sequence rather than a perceptual visual signal. It cannot tolerate compression, re-encoding, or format conversion.
 
 ### 3.2 Soft Binding (`c2pa.soft-binding`)

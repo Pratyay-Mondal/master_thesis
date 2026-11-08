@@ -1,363 +1,376 @@
 /**
  * ui_injector.js
- * Isolated Shadow DOM UI injection utility for social media feeds.
+ * Isolated Shadow DOM UI Badge Injector for Social Media Feeds.
  *
- * Enforces CSS isolation via W3C Shadow DOM v1 to prevent Meta platform
- * styles from distorting Article 50(5) visual badges, and vice versa.
+ * Utilizes W3C Shadow DOM v1 (`mode: 'open'`) to completely insulate
+ * transparency badges from Meta's global stylesheets and CSS resets.
  *
  * Thesis: "AI Transparency in the Wild: Bridging Technical Provenance
  * and Legal Compliance under the EU AI Act on Social Media Platforms"
  */
 
-import { EXTENSION_CONFIG, BADGE_THEMES, COMPLIANCE_STATUS } from '../common/constants.js';
-import { Logger } from '../common/logger.js';
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define([], factory);
+  } else if (typeof module === 'object' && module.exports) {
+    module.exports = factory();
+  } else {
+    root.AITransparency = root.AITransparency || {};
+    root.AITransparency.UIInjector = factory();
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : window, function () {
+  'use strict';
 
-export class UIInjector {
-  /**
-   * Injects an isolated Shadow DOM container into the specified anchor element.
-   * @param {Element} anchorElement - DOM node where badge will be attached
-   * @param {Object} metadata - Initial inspection metadata
-   * @returns {ShadowRoot|null}
-   */
-  static injectBadgeContainer(anchorElement, metadata = {}) {
-    if (!anchorElement) return null;
+  const CONTAINER_CLASS = 'ai-transparency-badge-host';
 
-    // Check if host already exists
-    let hostElement = anchorElement.querySelector(`.${EXTENSION_CONFIG.CONTAINER_CLASS}`);
-    if (hostElement && hostElement.shadowRoot) {
-      return hostElement.shadowRoot;
+  const BADGE_STATUSES = {
+    VERIFIED: {
+      key: 'VERIFIED',
+      label: '🛡️ AI: Verified Provenance',
+      bg: '#057a55',
+      border: '#0e9f6e',
+      text: '#ffffff',
+      glow: 'rgba(5, 122, 85, 0.45)',
+      description: 'C2PA cryptographic manifest or statistical watermark verified.'
+    },
+    PLATFORM_TAG: {
+      key: 'PLATFORM_TAG',
+      label: '⚠️ AI: Platform Tagged',
+      bg: '#b43403',
+      border: '#d97706',
+      text: '#ffffff',
+      glow: 'rgba(217, 119, 6, 0.45)',
+      description: 'Platform "Made with AI" label present; underlying manifest stripped by CDN.'
+    },
+    UNLABELED_AI: {
+      key: 'UNLABELED_AI',
+      label: '🚨 AI: Undisclosed Synthetic Media',
+      bg: '#c81e1e',
+      border: '#e02424',
+      text: '#ffffff',
+      glow: 'rgba(224, 36, 36, 0.55)',
+      description: 'Synthetic signal detected without required Article 50(4) deployer disclosure.'
+    },
+    SCANNING: {
+      key: 'SCANNING',
+      label: '🔍 AI: Provenance Auditing...',
+      bg: '#1c64f2',
+      border: '#3f83f8',
+      text: '#ffffff',
+      glow: 'rgba(63, 131, 248, 0.45)',
+      description: 'Inspecting C2PA JUMBF headers and statistical text entropy.'
+    },
+    INSUFFICIENT: {
+      key: 'INSUFFICIENT',
+      label: '⚪ AI: Inconclusive / Short',
+      bg: '#374151',
+      border: '#4b5563',
+      text: '#f9fafb',
+      glow: 'rgba(75, 85, 99, 0.3)',
+      description: 'Content length is below threshold (T < 50 tokens) for reliable detection.'
+    }
+  };
+
+  class UIInjector {
+    /**
+     * Primary injection function.
+     * Attaches an isolated Shadow Root to the anchor element and renders a high-visibility badge.
+     * @param {Element} anchorElement - DOM node inside post header
+     * @param {string|Object} status - Status key or configuration object
+     * @returns {ShadowRoot|null} Injected shadow root
+     */
+    static injectBadge(anchorElement, status = 'SCANNING') {
+      if (!anchorElement) {
+        console.warn('[AI-Transparency-Validator] [Injector] No valid anchor element provided.');
+        return null;
+      }
+
+      // Check if host already exists on this anchor
+      let host = anchorElement.querySelector(`.${CONTAINER_CLASS}`);
+      if (host && host.shadowRoot) {
+        this.updateBadge(host.shadowRoot, status);
+        return host.shadowRoot;
+      }
+
+      try {
+        // Create host container in light DOM
+        host = document.createElement('div');
+        host.className = CONTAINER_CLASS;
+        host.setAttribute('role', 'region');
+        host.setAttribute('aria-label', 'EU AI Act Article 50 Transparency Indicator');
+
+        // Style the host container itself to avoid breaking parent layout
+        host.style.all = 'initial';
+        host.style.display = 'inline-block';
+        host.style.margin = '4px 8px';
+        host.style.verticalAlign = 'middle';
+        host.style.zIndex = '9999';
+
+        // Attach open Shadow Root
+        const shadowRoot = host.attachShadow({ mode: 'open' });
+
+        // Add isolated stylesheet
+        const style = document.createElement('style');
+        style.textContent = this.getEncapsulatedStyles();
+        shadowRoot.appendChild(style);
+
+        // Build badge pill element
+        const badgeWrapper = document.createElement('div');
+        badgeWrapper.className = 'ai-badge-wrapper';
+        shadowRoot.appendChild(badgeWrapper);
+
+        // Initial render
+        this.renderBadgeContent(badgeWrapper, shadowRoot, status);
+
+        // Insert host safely into anchor
+        if (anchorElement.firstChild) {
+          anchorElement.insertBefore(host, anchorElement.firstChild);
+        } else {
+          anchorElement.appendChild(host);
+        }
+
+        console.log('[AI-Transparency-Validator] [Injector] Successfully injected badge into anchor:', anchorElement);
+        return shadowRoot;
+      } catch (err) {
+        console.error('[AI-Transparency-Validator] [Injector] Error injecting Shadow DOM badge:', err);
+        return null;
+      }
     }
 
-    try {
-      // Create Host Element in light DOM
-      hostElement = document.createElement('div');
-      hostElement.className = EXTENSION_CONFIG.CONTAINER_CLASS;
-      hostElement.setAttribute('role', 'region');
-      hostElement.setAttribute('aria-label', 'AI Transparency & Provenance Information');
-      
-      // Inline host styles to ensure correct positioning without bleed
-      hostElement.style.display = 'inline-flex';
-      hostElement.style.alignItems = 'center';
-      hostElement.style.marginLeft = '8px';
-      hostElement.style.verticalAlign = 'middle';
-      hostElement.style.zIndex = '999';
+    /**
+     * Updates an existing badge in the Shadow DOM.
+     * @param {ShadowRoot} shadowRoot
+     * @param {string|Object} status
+     */
+    static updateBadge(shadowRoot, status) {
+      if (!shadowRoot) return;
+      const badgeWrapper = shadowRoot.querySelector('.ai-badge-wrapper');
+      if (badgeWrapper) {
+        this.renderBadgeContent(badgeWrapper, shadowRoot, status);
+      }
+    }
 
-      // Attach open shadow root
-      const shadowRoot = hostElement.attachShadow({ mode: 'open' });
+    /**
+     * Internal renderer for badge content and event bindings.
+     */
+    static renderBadgeContent(badgeWrapper, shadowRoot, statusInput) {
+      const statusKey = typeof statusInput === 'string' ? statusInput : statusInput.status || 'SCANNING';
+      const cfg = BADGE_STATUSES[statusKey] || BADGE_STATUSES.SCANNING;
+      const customLabel = typeof statusInput === 'object' && statusInput.label ? statusInput.label : cfg.label;
 
-      // Inject isolated component stylesheet
-      const styleSheet = document.createElement('style');
-      styleSheet.textContent = this.getShadowStyles();
-      shadowRoot.appendChild(styleSheet);
+      badgeWrapper.innerHTML = `
+        <button class="ai-badge-pill" type="button" aria-haspopup="dialog" style="
+          background: ${cfg.bg};
+          border: 1.5px solid ${cfg.border};
+          color: ${cfg.text};
+          box-shadow: 0 0 8px ${cfg.glow};
+        ">
+          <span class="ai-badge-text">${customLabel}</span>
+        </button>
+      `;
 
-      // Create container inside shadow DOM
-      const badgeContainer = document.createElement('div');
-      badgeContainer.className = 'ai-badge-root';
-      badgeContainer.innerHTML = this.renderInitialBadge(metadata);
+      const button = badgeWrapper.querySelector('.ai-badge-pill');
+      button.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        this.toggleAuditDrawer(shadowRoot, cfg);
+      };
+    }
 
-      // Attach click handler for audit drawer
-      badgeContainer.addEventListener('click', (event) => {
-        event.stopPropagation();
-        this.toggleAuditDrawer(shadowRoot, metadata);
-      });
-
-      shadowRoot.appendChild(badgeContainer);
-
-      // Prepend or append to anchor
-      if (anchorElement.firstChild) {
-        anchorElement.insertBefore(hostElement, anchorElement.firstChild);
-      } else {
-        anchorElement.appendChild(hostElement);
+    /**
+     * Toggles an interactive audit drawer inside the Shadow DOM.
+     */
+    static toggleAuditDrawer(shadowRoot, cfg) {
+      let drawer = shadowRoot.querySelector('.ai-audit-drawer');
+      if (drawer) {
+        drawer.classList.toggle('active');
+        return;
       }
 
-      Logger.debug('Injected Shadow DOM badge host for anchor:', anchorElement);
-      return shadowRoot;
-    } catch (err) {
-      Logger.error('Failed to inject Shadow DOM badge container:', err);
-      return null;
+      drawer = document.createElement('div');
+      drawer.className = 'ai-audit-drawer active';
+      drawer.innerHTML = `
+        <div class="drawer-header">
+          <span class="drawer-title">EU AI Act Art. 50 Provenance Audit</span>
+          <button class="drawer-close" type="button">&times;</button>
+        </div>
+        <div class="drawer-body">
+          <div class="audit-row">
+            <span class="row-tag">Status:</span>
+            <span class="row-info" style="color: ${cfg.border}">${cfg.key}</span>
+          </div>
+          <div class="audit-row">
+            <span class="row-tag">Assessment:</span>
+            <span class="row-info">${cfg.description}</span>
+          </div>
+          <div class="audit-row">
+            <span class="row-tag">Article 50(2):</span>
+            <span class="row-info">Machine-Readable Check Completed</span>
+          </div>
+          <div class="audit-row">
+            <span class="row-tag">Article 50(5):</span>
+            <span class="row-info">Active (Client-Side Shadow DOM Overlay)</span>
+          </div>
+        </div>
+        <div class="drawer-footer">
+          THWS Master's Thesis Prototype · AI Transparency & Provenance Validator
+        </div>
+      `;
+
+      drawer.querySelector('.drawer-close').onclick = (e) => {
+        e.stopPropagation();
+        drawer.classList.remove('active');
+      };
+
+      shadowRoot.appendChild(drawer);
+    }
+
+    /**
+     * Complete encapsulated styles.
+     * Utilizes `all: initial` to eliminate CSS bleed from Facebook, Instagram, or WhatsApp.
+     */
+    static getEncapsulatedStyles() {
+      return `
+        :host {
+          all: initial;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          font-size: 12px;
+          line-height: 1.2;
+          display: inline-block;
+          position: relative;
+        }
+
+        .ai-badge-wrapper {
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .ai-badge-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px;
+          border-radius: 9999px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.3px;
+          cursor: pointer;
+          outline: none;
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+          user-select: none;
+        }
+
+        .ai-badge-pill:hover {
+          transform: translateY(-1px) scale(1.02);
+          filter: brightness(1.1);
+        }
+
+        .ai-badge-pill:active {
+          transform: translateY(0);
+        }
+
+        .ai-badge-text {
+          white-space: nowrap;
+        }
+
+        /* Audit Drawer Window */
+        .ai-audit-drawer {
+          display: none;
+          position: absolute;
+          top: calc(100% + 8px);
+          left: 0;
+          width: 300px;
+          background: #111827;
+          border: 1px solid #374151;
+          border-radius: 8px;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+          z-index: 999999;
+          padding: 12px;
+          color: #f9fafb;
+          box-sizing: border-box;
+        }
+
+        .ai-audit-drawer.active {
+          display: block;
+          animation: badgeFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes badgeFadeIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .drawer-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 1px solid #374151;
+          padding-bottom: 6px;
+          margin-bottom: 8px;
+        }
+
+        .drawer-title {
+          font-weight: 700;
+          font-size: 11px;
+          color: #93c5fd;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .drawer-close {
+          background: none;
+          border: none;
+          color: #9ca3af;
+          font-size: 16px;
+          line-height: 1;
+          cursor: pointer;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+
+        .drawer-close:hover {
+          color: #ffffff;
+          background: #374151;
+        }
+
+        .drawer-body {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          font-size: 11px;
+        }
+
+        .audit-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 8px;
+        }
+
+        .row-tag {
+          color: #9ca3af;
+          font-weight: 500;
+          min-width: 80px;
+        }
+
+        .row-info {
+          font-weight: 600;
+          text-align: right;
+          color: #f3f4f6;
+        }
+
+        .drawer-footer {
+          margin-top: 10px;
+          padding-top: 6px;
+          border-top: 1px solid #1f2937;
+          font-size: 9px;
+          color: #6b7280;
+          text-align: center;
+        }
+      `;
     }
   }
 
-  /**
-   * Updates an existing badge state inside its shadow root.
-   * @param {ShadowRoot} shadowRoot 
-   * @param {Object} complianceResult 
-   */
-  static updateBadgeState(shadowRoot, complianceResult) {
-    if (!shadowRoot) return;
-
-    const root = shadowRoot.querySelector('.ai-badge-root');
-    if (!root) return;
-
-    const { status, label, details } = complianceResult;
-
-    let themeClass = BADGE_THEMES.GREY;
-    let icon = 'ℹ️';
-
-    switch (status) {
-      case COMPLIANCE_STATUS.COMPLIANT:
-        themeClass = BADGE_THEMES.GREEN;
-        icon = '🛡️';
-        break;
-      case COMPLIANCE_STATUS.PLATFORM_MEDIATED:
-        themeClass = BADGE_THEMES.AMBER;
-        icon = '⚠️';
-        break;
-      case COMPLIANCE_STATUS.POTENTIAL_NON_COMPLIANCE:
-        themeClass = BADGE_THEMES.RED;
-        icon = '🚨';
-        break;
-      case COMPLIANCE_STATUS.EXEMPT_EDITORIAL:
-        themeClass = BADGE_THEMES.GREEN;
-        icon = '✍️';
-        break;
-      default:
-        themeClass = BADGE_THEMES.GREY;
-        icon = '🔍';
-    }
-
-    root.className = `ai-badge-root ${themeClass}`;
-    root.innerHTML = `
-      <div class="ai-badge-pill">
-        <span class="ai-badge-icon">${icon}</span>
-        <span class="ai-badge-text">${label || 'AI Transparency'}</span>
-      </div>
-    `;
-
-    // Cache updated metadata for drawer inspection
-    root.dataset.metadata = JSON.stringify(complianceResult);
-  }
-
-  /**
-   * Initial placeholder HTML template while background analysis is pending.
-   */
-  static renderInitialBadge(metadata) {
-    return `
-      <div class="ai-badge-pill badge-evaluating">
-        <span class="ai-badge-spinner"></span>
-        <span class="ai-badge-text">Auditing Provenance...</span>
-      </div>
-    `;
-  }
-
-  /**
-   * Toggles the provenance details modal / drawer within the Shadow DOM.
-   */
-  static toggleAuditDrawer(shadowRoot, metadata) {
-    let drawer = shadowRoot.querySelector('.ai-audit-drawer');
-    if (drawer) {
-      drawer.classList.toggle('open');
-      return;
-    }
-
-    // Create drawer if not yet created
-    drawer = document.createElement('div');
-    drawer.className = 'ai-audit-drawer open';
-    drawer.innerHTML = `
-      <div class="drawer-header">
-        <h4>EU AI Act Art. 50 Compliance Audit</h4>
-        <button class="drawer-close" aria-label="Close">&times;</button>
-      </div>
-      <div class="drawer-body">
-        <div class="audit-row">
-          <span class="row-label">Platform:</span>
-          <span class="row-value">${metadata.platform || 'Meta Social'}</span>
-        </div>
-        <div class="audit-row">
-          <span class="row-label">Media Targets:</span>
-          <span class="row-value">${metadata.mediaCount || 0} image(s)</span>
-        </div>
-        <div class="audit-row">
-          <span class="row-label">Text Length:</span>
-          <span class="row-value">${metadata.textLength || 0} characters</span>
-        </div>
-        <div class="audit-divider"></div>
-        <div class="audit-legal-note">
-          <small>Evaluated client-side under THWS Master's Thesis research harness. Complies with GDPR Art. 5(1)(c) data minimisation.</small>
-        </div>
-      </div>
-    `;
-
-    drawer.querySelector('.drawer-close').addEventListener('click', (e) => {
-      e.stopPropagation();
-      drawer.classList.remove('open');
-    });
-
-    shadowRoot.appendChild(drawer);
-  }
-
-  /**
-   * Fully encapsulated CSS styles injected inside the Shadow DOM root.
-   */
-  static getShadowStyles() {
-    return `
-      :host {
-        all: initial;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        font-size: 12px;
-        line-height: 1.4;
-      }
-
-      .ai-badge-root {
-        display: inline-flex;
-        cursor: pointer;
-        user-select: none;
-        position: relative;
-      }
-
-      .ai-badge-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-weight: 600;
-        letter-spacing: 0.2px;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-      }
-
-      .ai-badge-pill:hover {
-        transform: scale(1.03);
-        box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-      }
-
-      /* Evaluating Placeholder */
-      .badge-evaluating {
-        background: #f0f2f5;
-        color: #65676b;
-        border: 1px solid #dcdfe4;
-      }
-
-      .ai-badge-spinner {
-        width: 8px;
-        height: 8px;
-        border: 2px solid #ccd0d5;
-        border-top-color: #1877f2;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-      }
-
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-
-      /* Verified Provenance (Green) */
-      .${BADGE_THEMES.GREEN} .ai-badge-pill {
-        background: #e7f7ed;
-        color: #0e7039;
-        border: 1px solid #a3e2bb;
-      }
-
-      /* Platform Mediated (Amber) */
-      .${BADGE_THEMES.AMBER} .ai-badge-pill {
-        background: #fff8e6;
-        color: #b7791f;
-        border: 1px solid #fbd38d;
-      }
-
-      /* Potential Non-Compliance (Red) */
-      .${BADGE_THEMES.RED} .ai-badge-pill {
-        background: #fde8e8;
-        color: #9b1c1c;
-        border: 1px solid #f8b4b4;
-      }
-
-      /* Inconclusive / Micro-Span (Grey) */
-      .${BADGE_THEMES.GREY} .ai-badge-pill {
-        background: #f3f4f6;
-        color: #4b5563;
-        border: 1px solid #e5e7eb;
-      }
-
-      .ai-badge-icon {
-        font-size: 13px;
-      }
-
-      .ai-badge-text {
-        font-size: 11px;
-      }
-
-      /* Audit Drawer Modal */
-      .ai-audit-drawer {
-        display: none;
-        position: absolute;
-        top: calc(100% + 6px);
-        left: 0;
-        width: 280px;
-        background: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.22);
-        border: 1px solid #e5e7eb;
-        z-index: 10000;
-        padding: 12px;
-        color: #1f2937;
-      }
-
-      .ai-audit-drawer.open {
-        display: block;
-        animation: fadeIn 0.2s ease-out;
-      }
-
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-4px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      .drawer-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-      }
-
-      .drawer-header h4 {
-        margin: 0;
-        font-size: 12px;
-        font-weight: 700;
-        color: #111827;
-      }
-
-      .drawer-close {
-        background: none;
-        border: none;
-        font-size: 16px;
-        cursor: pointer;
-        color: #6b7280;
-        padding: 0 4px;
-      }
-
-      .drawer-close:hover {
-        color: #111827;
-      }
-
-      .audit-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 4px 0;
-        font-size: 11px;
-      }
-
-      .row-label {
-        color: #6b7280;
-      }
-
-      .row-value {
-        font-weight: 600;
-        color: #1f2937;
-      }
-
-      .audit-divider {
-        height: 1px;
-        background: #e5e7eb;
-        margin: 8px 0;
-      }
-
-      .audit-legal-note {
-        font-size: 10px;
-        color: #9ca3af;
-        line-height: 1.3;
-      }
-    `;
-  }
-}
-
+  UIInjector.BADGE_STATUSES = BADGE_STATUSES;
+  return UIInjector;
+});

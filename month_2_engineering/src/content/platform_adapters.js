@@ -1,215 +1,283 @@
 /**
  * platform_adapters.js
- * Resilient multi-strategy DOM selectors for Meta platforms
- * (Facebook Feed, Instagram Feed, and WhatsApp Web).
+ * Resilient Semantic ARIA & Data Attribute Selectors for Meta Platforms.
  *
- * Implements the Platform Adapter Pattern to isolate platform-specific
- * DOM variance from core inspection and compliance logic.
+ * Designed specifically for Meta's dynamic React Virtual DOM:
+ * - Scrambled utility classes (e.g., .x1yzt...) are strictly avoided.
+ * - Prioritizes W3C Semantic ARIA roles (`role="article"`, `role="feed"`, `role="row"`).
+ * - Implements platform-specific `getAnchorElement()` for safe UI badge insertion.
  *
  * Thesis: "AI Transparency in the Wild: Bridging Technical Provenance
  * and Legal Compliance under the EU AI Act on Social Media Platforms"
  */
 
-import { PLATFORMS } from '../common/constants.js';
-
-export class PlatformAdapters {
-  /**
-   * Identifies active platform based on hostname.
-   * @returns {string} One of PLATFORMS enum
-   */
-  static detectPlatform() {
-    const host = window.location.hostname.toLowerCase();
-    if (host.includes('facebook.com')) return PLATFORMS.FACEBOOK;
-    if (host.includes('instagram.com')) return PLATFORMS.INSTAGRAM;
-    if (host.includes('whatsapp.com')) return PLATFORMS.WHATSAPP;
-    return PLATFORMS.UNKNOWN;
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define([], factory);
+  } else if (typeof module === 'object' && module.exports) {
+    module.exports = factory();
+  } else {
+    root.AITransparency = root.AITransparency || {};
+    root.AITransparency.PlatformAdapters = factory();
   }
+})(typeof globalThis !== 'undefined' ? globalThis : window, function () {
+  'use strict';
 
-  /**
-   * Multi-strategy post selectors.
-   * Prioritizes ARIA roles and data attributes over volatile class names.
-   */
-  static getPostSelectors(platform) {
-    switch (platform) {
-      case PLATFORMS.FACEBOOK:
-        return [
-          'div[role="feed"] > div[role="article"]',
-          'div[role="article"]',
-          'div[data-pagelet^="FeedUnit_"]',
-          'div[data-virtualized="false"][role="article"]'
-        ];
+  const PLATFORMS = {
+    FACEBOOK: 'facebook',
+    INSTAGRAM: 'instagram',
+    WHATSAPP: 'whatsapp',
+    UNKNOWN: 'unknown'
+  };
 
-      case PLATFORMS.INSTAGRAM:
-        return [
-          'main article',
-          'article[role="presentation"]',
-          'article._aatb',
-          'div._aagv' // Single image container fallback
-        ];
+  class PlatformAdapters {
+    /**
+     * Determines the active social media platform based on window.location.
+     * Also detects local mock HTML files (e.g. facebook_mock.html).
+     * @returns {string} One of PLATFORMS enum
+     */
+    static detectPlatform() {
+      const href = (window.location.href || '').toLowerCase();
+      const host = (window.location.hostname || '').toLowerCase();
 
-      case PLATFORMS.WHATSAPP:
-        return [
-          'div[role="row"] div.message-in',
-          'div[role="row"] div.message-out',
-          'div[data-id][role="row"]',
-          'div.focusable-list-item'
-        ];
-
-      default:
-        return ['article', 'div[role="article"]'];
-    }
-  }
-
-  /**
-   * Queries all uninspected post nodes currently in the DOM.
-   * @param {string} platform 
-   * @param {Element|Document} root 
-   * @returns {Element[]}
-   */
-  static queryUninspectedPosts(platform, root = document) {
-    const selectors = this.getPostSelectors(platform);
-    const combinedSelector = selectors.join(', ');
-    const candidates = Array.from(root.querySelectorAll(combinedSelector));
-
-    // Filter out already processed nodes and nested duplicates
-    return candidates.filter(el => {
-      if (el.hasAttribute('data-ai-transparency-inspected')) return false;
-      // Prevent selecting child articles inside an already selected parent article
-      if (el.closest('[data-ai-transparency-inspected="true"]')) return false;
-      return true;
-    });
-  }
-
-  /**
-   * Extracts media elements (<img>, <video>) associated with a post element.
-   * @param {string} platform 
-   * @param {Element} postElement 
-   * @returns {HTMLImageElement[]}
-   */
-  static extractMediaElements(platform, postElement) {
-    const images = Array.from(postElement.querySelectorAll('img'));
-    
-    // Filter out UI avatars, reaction icons, and tracking pixels (< 120px)
-    return images.filter(img => {
-      const src = img.currentSrc || img.src || '';
-      if (!src || src.startsWith('data:image/svg')) return false;
-
-      // Filter small icon dimensions
-      const width = img.naturalWidth || img.clientWidth || img.width || 0;
-      const height = img.naturalHeight || img.clientHeight || img.height || 0;
-
-      // Profile pictures and emoji reactions are usually <= 50px
-      if (width > 0 && width < 120) return false;
-      if (height > 0 && height < 120) return false;
-
-      return true;
-    });
-  }
-
-  /**
-   * Extracts primary text content from post.
-   * Filters platform interface elements (Like, Share, Timestamp buttons).
-   * @param {string} platform 
-   * @param {Element} postElement 
-   * @returns {string}
-   */
-  static extractTextContent(platform, postElement) {
-    let textContainers = [];
-
-    switch (platform) {
-      case PLATFORMS.FACEBOOK:
-        // FB user text is typically inside dir="auto" containers
-        textContainers = Array.from(postElement.querySelectorAll('div[dir="auto"], span[dir="auto"]'));
-        break;
-
-      case PLATFORMS.INSTAGRAM:
-        // IG caption is usually in h1 or span under the header
-        textContainers = Array.from(postElement.querySelectorAll('h1, span._ap3a, div._a9zs'));
-        break;
-
-      case PLATFORMS.WHATSAPP:
-        // WA message text spans
-        textContainers = Array.from(postElement.querySelectorAll('span.selectable-text, span.copyable-text'));
-        break;
-
-      default:
-        textContainers = Array.from(postElement.querySelectorAll('p, span[dir="auto"]'));
+      if (host.includes('facebook.com') || href.includes('facebook_mock')) {
+        return PLATFORMS.FACEBOOK;
+      }
+      if (host.includes('instagram.com') || href.includes('instagram_mock')) {
+        return PLATFORMS.INSTAGRAM;
+      }
+      if (host.includes('whatsapp.com') || href.includes('whatsapp_mock')) {
+        return PLATFORMS.WHATSAPP;
+      }
+      return PLATFORMS.UNKNOWN;
     }
 
-    if (textContainers.length === 0) {
-      // Fallback: entire text content stripped of extra whitespace
-      return (postElement.innerText || '').trim();
+    /**
+     * Returns robust ARIA and semantic selectors for post containers.
+     * React's Virtual DOM constantly recycles class names, but ARIA roles
+     * remain constant for accessibility compliance.
+     * @param {string} platform
+     * @returns {string[]} List of valid CSS selectors
+     */
+    static getPostSelectors(platform) {
+      switch (platform) {
+        case PLATFORMS.FACEBOOK:
+          return [
+            // Standard Facebook Feed articles
+            'div[role="feed"] div[role="article"]',
+            'div[role="article"]',
+            // Data-pagelet identifiers used in FB web
+            'div[data-pagelet^="FeedUnit"]',
+            'div[data-virtualized="false"][role="article"]'
+          ];
+
+        case PLATFORMS.INSTAGRAM:
+          return [
+            // Standard Instagram Feed articles
+            'main article',
+            'article[role="presentation"]',
+            'article',
+            // Standalone modal / post detail view
+            'div[role="dialog"] article',
+            // Image card presentation wrapper fallback
+            'div._aagv'
+          ];
+
+        case PLATFORMS.WHATSAPP:
+          return [
+            // Messages are rendered as role="row" in WhatsApp Web's virtual list
+            'div[role="application"] div[role="row"]',
+            'div[role="row"] div.message-in',
+            'div[role="row"] div.message-out',
+            'div[data-id][role="row"]',
+            'div[role="row"]'
+          ];
+
+        default:
+          return ['article', 'div[role="article"]', '[data-pagelet]'];
+      }
     }
 
-    // Join unique textual fragments
-    const textFragments = textContainers
-      .map(node => (node.innerText || '').trim())
-      .filter(text => text.length > 0);
+    /**
+     * Finds all unprocessed post elements in the DOM.
+     * Ensures we do not select nested elements or already processed nodes.
+     * @param {string} platform
+     * @param {Element|Document} rootNode
+     * @returns {Element[]}
+     */
+    static queryUninspectedPosts(platform, rootNode = document) {
+      const selectors = this.getPostSelectors(platform);
+      const combined = selectors.join(', ');
+      let candidates = [];
 
-    return Array.from(new Set(textFragments)).join('\n');
-  }
-
-  /**
-   * Locates the optimal container within a post to attach the UI badge.
-   * @param {string} platform 
-   * @param {Element} postElement 
-   * @returns {Element}
-   */
-  static findBadgeAnchor(platform, postElement) {
-    switch (platform) {
-      case PLATFORMS.FACEBOOK: {
-        // Try locating the top header row or user profile line
-        const header = postElement.querySelector('div[data-ad-rendering-role="profile_name"]') ||
-                       postElement.querySelector('h2, h3, h4') ||
-                       postElement.firstElementChild;
-        return header || postElement;
+      try {
+        candidates = Array.from(rootNode.querySelectorAll(combined));
+      } catch (e) {
+        console.error('[AI-Transparency-Validator] [Adapter] QuerySelector error:', e);
+        return [];
       }
 
-      case PLATFORMS.INSTAGRAM: {
-        // Try locating header section with username
-        const header = postElement.querySelector('header') ||
-                       postElement.querySelector('div._aagv') ||
-                       postElement.firstElementChild;
-        return header || postElement;
+      // If the rootNode itself matches the selector, include it
+      if (rootNode !== document && rootNode.matches && rootNode.matches(combined)) {
+        candidates.unshift(rootNode);
       }
 
-      case PLATFORMS.WHATSAPP: {
-        // Append inside message bubble
-        const bubble = postElement.querySelector('div[class*="copyable-text"]') ||
-                       postElement.firstElementChild;
-        return bubble || postElement;
+      return candidates.filter((el) => {
+        // Skip if already flagged
+        if (el.hasAttribute('data-ai-transparency-inspected')) return false;
+
+        // Skip if nested inside an already flagged parent post
+        if (el.parentElement && el.parentElement.closest('[data-ai-transparency-inspected="true"]')) {
+          return false;
+        }
+
+        // Must have non-zero layout or children (filters dead virtual DOM stubs)
+        if (el.childNodes.length === 0) return false;
+
+        return true;
+      });
+    }
+
+    /**
+     * Locates a safe, visible insertion point for the UI badge within the post.
+     * React aggressively reconciles children, so attaching directly to the
+     * top-level header or author profile line ensures the badge stays visible.
+     * @param {string} platform
+     * @param {Element} postNode
+     * @returns {Element} Safe anchor element
+     */
+    static getAnchorElement(platform, postNode) {
+      if (!postNode) return null;
+
+      switch (platform) {
+        case PLATFORMS.FACEBOOK: {
+          // 1. Author header row / profile name
+          const profileAnchor =
+            postNode.querySelector('h2') ||
+            postNode.querySelector('h3') ||
+            postNode.querySelector('h4') ||
+            postNode.querySelector('[data-ad-rendering-role="profile_name"]') ||
+            postNode.querySelector('div[dir="auto"] strong');
+
+          if (profileAnchor && profileAnchor.parentElement) {
+            return profileAnchor.parentElement;
+          }
+
+          // 2. Top-most visible header container inside the article
+          const headerContainer = postNode.querySelector('div[class*="header"]') || postNode.firstElementChild;
+          return headerContainer || postNode;
+        }
+
+        case PLATFORMS.INSTAGRAM: {
+          // 1. Instagram header bar containing username and avatar
+          const igHeader = postNode.querySelector('header');
+          if (igHeader) {
+            // Find the username container inside the header
+            const userBar = igHeader.querySelector('div[class*="user"]') || igHeader.firstElementChild;
+            return userBar || igHeader;
+          }
+
+          // 2. Standalone image container fallback
+          const imageContainer = postNode.querySelector('div._aagv') || postNode.querySelector('div[role="button"]');
+          if (imageContainer) {
+            return imageContainer;
+          }
+
+          return postNode.firstElementChild || postNode;
+        }
+
+        case PLATFORMS.WHATSAPP: {
+          // 1. WhatsApp message bubble text or action bar
+          const bubble =
+            postNode.querySelector('div.copyable-text') ||
+            postNode.querySelector('div.message-in') ||
+            postNode.querySelector('div.message-out') ||
+            postNode.querySelector('span.selectable-text');
+
+          if (bubble && bubble.parentElement) {
+            return bubble.parentElement;
+          }
+
+          return postNode.firstElementChild || postNode;
+        }
+
+        default:
+          return postNode.querySelector('header') || postNode.firstElementChild || postNode;
+      }
+    }
+
+    /**
+     * Extracts all relevant media image elements from a post.
+     * Filters out avatars, smileys, and tracking pixels (< 100px).
+     * @param {string} platform
+     * @param {Element} postNode
+     * @returns {HTMLImageElement[]}
+     */
+    static extractMediaElements(platform, postNode) {
+      const imgs = Array.from(postNode.querySelectorAll('img'));
+      return imgs.filter((img) => {
+        const src = img.currentSrc || img.src || '';
+        if (!src || src.startsWith('data:image/svg')) return false;
+
+        // Skip user profile icons and tiny reaction icons
+        const w = img.naturalWidth || img.clientWidth || img.width || 0;
+        const h = img.naturalHeight || img.clientHeight || img.height || 0;
+        if (w > 0 && w < 100) return false;
+        if (h > 0 && h < 100) return false;
+
+        return true;
+      });
+    }
+
+    /**
+     * Extracts the primary text content (caption or message).
+     * @param {string} platform
+     * @param {Element} postNode
+     * @returns {string}
+     */
+    static extractTextContent(platform, postNode) {
+      let textNodes = [];
+
+      switch (platform) {
+        case PLATFORMS.FACEBOOK:
+          textNodes = Array.from(postNode.querySelectorAll('div[dir="auto"], span[dir="auto"]'));
+          break;
+        case PLATFORMS.INSTAGRAM:
+          textNodes = Array.from(postNode.querySelectorAll('h1, span._ap3a, div._a9zs, span._aacl'));
+          break;
+        case PLATFORMS.WHATSAPP:
+          textNodes = Array.from(postNode.querySelectorAll('span.selectable-text, span.copyable-text'));
+          break;
+        default:
+          textNodes = Array.from(postNode.querySelectorAll('p, div[dir="auto"]'));
       }
 
-      default:
-        return postElement.firstElementChild || postElement;
+      if (textNodes.length === 0) {
+        return (postNode.innerText || '').trim();
+      }
+
+      const rawStrings = textNodes.map((n) => (n.innerText || '').trim()).filter((s) => s.length > 0);
+      return Array.from(new Set(rawStrings)).join('\n');
+    }
+
+    /**
+     * Detects if the platform itself already rendered an AI label (e.g., "Made with AI").
+     * @param {string} platform
+     * @param {Element} postNode
+     * @returns {boolean}
+     */
+    static detectPlatformNativeLabel(platform, postNode) {
+      const text = (postNode.innerText || '').toLowerCase();
+      const aria = Array.from(postNode.querySelectorAll('[aria-label]'))
+        .map((el) => el.getAttribute('aria-label').toLowerCase())
+        .join(' ');
+      const combined = `${text} ${aria}`;
+
+      const keywords = ['made with ai', 'mit ki erstellt', 'creado con ia', 'créé avec l’ia', 'ai info', 'ki-info'];
+      return keywords.some((k) => combined.includes(k));
     }
   }
 
-  /**
-   * Detects platform-level "Made with AI" labels natively present in DOM.
-   * @param {string} platform 
-   * @param {Element} postElement 
-   * @returns {boolean}
-   */
-  static detectPlatformNativeLabel(platform, postElement) {
-    const text = (postElement.innerText || '').toLowerCase();
-    const ariaLabels = Array.from(postElement.querySelectorAll('[aria-label]'))
-      .map(el => el.getAttribute('aria-label').toLowerCase())
-      .join(' ');
-
-    const combinedText = `${text} ${ariaLabels}`;
-    
-    // Meta standardized label keywords
-    const indicators = [
-      'made with ai',
-      'mit ki erstellt',
-      'creado con ia',
-      'créé avec l’ia',
-      'ai info',
-      'ki-info'
-    ];
-
-    return indicators.some(indicator => combinedText.includes(indicator));
-  }
-}
-
+  PlatformAdapters.PLATFORMS = PLATFORMS;
+  return PlatformAdapters;
+});

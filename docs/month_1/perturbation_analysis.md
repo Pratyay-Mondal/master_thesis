@@ -107,3 +107,4 @@ The empirical findings directly inform the implementation of **FR-02 (Text Prove
 1. **Length-Gating Threshold ($T \ge 50$):** The extension must compute client-side token counts before submitting text to detection endpoints. Spans with $T < 50$ tokens must return `INSUFFICIENT_LENGTH` rather than a false negative.
 2. **Multi-Lingual Translation Alert:** If the extension detects that Meta’s auto-translation feature has been activated on a post, it must flag that the displayed text is an unwatermarked secondary translation of the original source.
 3. **Editorial Control Classifier:** If a post exhibits intermediate $z$-scores ($1.5 \le z < 3.0$) and originates from an accredited journalistic organization, the compliance engine should classify the item as `EXEMPT_EDITORIAL_REVIEW_POSSIBLE`.
+

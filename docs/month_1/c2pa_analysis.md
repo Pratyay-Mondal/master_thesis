@@ -106,7 +106,7 @@ $$\mathcal{H}_{\text{asset}} = \text{SHA-256}\left( \text{FileBytes} \setminus \
 
 This hash is written into the `c2pa.hash.data` assertion and subsequently sealed within the signed claim. 
 - **Security Property:** Hard binding provides **complete mathematical integrity**. If a single bit in the entropy-coded scan data (`SOS`) or quantization tables (`DQT`) is altered, hash verification fails immediately:
- 
+
 $$\text{SHA-256}(\text{ReceivedBytes}) \neq \mathcal{H}_{\text{asset}} \implies \text{INVALID}\_\text{HASH}$$
 - **Vulnerability:** Hard binding treats media as an arbitrary byte sequence rather than a perceptual visual signal. It cannot tolerate compression, re-encoding, or format conversion.
 
@@ -203,3 +203,4 @@ This architecture creates an **ingestion trap** that undermines the fundamental 
 3. **The Necessity of a Multi-Tiered Verification Layer:** Meeting EU AI Act Article 50 requirements on social platforms demands that C2PA be complemented by:
    - Pixel-level invisible watermarking (e.g., SynthID-Image) capable of surviving DCT quantization.
    - Client-side DOM observation extensions capable of bridging the gap between platform database labels and verifiable provenance records.
+

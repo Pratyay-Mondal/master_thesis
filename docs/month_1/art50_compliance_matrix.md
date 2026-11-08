@@ -57,3 +57,4 @@ The compliance matrix establishes that **no single mechanism is sufficient** to 
 - **FR-02 (Text Module):** Must enforce a length-gating threshold (\(T \ge 50\) tokens) to prevent false-negative classifications on short social media captions.
 - **FR-03 (Compliance Engine):** Must distinguish between *Provider Compliance* (Art. 50(2)), *Deployer Compliance* (Art. 50(4)), and *Platform Disclosure* (Art. 50(5)).
 - **FR-04 (UI Overlay):** Must provide the missing Art. 50(5) presentation layer via an isolated Shadow DOM injection, restoring first-exposure visibility to social media users.
+

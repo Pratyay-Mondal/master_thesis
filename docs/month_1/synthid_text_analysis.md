@@ -206,3 +206,4 @@ Social Media Caption: [███████████████░░░░
 1. **Survival Advantage Over C2PA:** Unlike C2PA image metadata, statistical text watermarks survive verbatim copy-pasting, social media CDN caching, and WhatsApp end-to-end encrypted messaging without degradation.
 2. **The Inoperable Micro-Span Reality:** Because text watermarks are length-gated, they cannot fulfill Article 50(2) on short captions, titles, or status updates.
 3. **The Closed Ecosystem Dilemma:** Because SynthID-Text detection requires private provider keys, independent verification is impossible without platform cooperation, requiring client-side extensions to route queries through authenticated provider gateways.
+

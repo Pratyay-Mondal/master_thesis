@@ -171,7 +171,7 @@ In August 2026, Anthropic published technical documentation confirming their imp
 
 The capacity of any autoregressive watermarking scheme to embed detectable signal without semantic distortion is strictly bounded by the **conditional Shannon entropy** of the language model's predictive distribution:
 
-$$H(X_t \mid X_{<t}) = -\sum_{v \in V} p(v \mid X_{<t}) \log_2 p(v \mid X_{<t})$$
+$$H(X_t \mid X_{\lt t}) = -\sum_{v \in V} p(v \mid X_{\lt t}) \log_2 p(v \mid X_{\lt t})$$
 
 ### 5.1 The Entropy Gating Mechanism
 - **High-Entropy Positions ($H \ge 2.5\text{ bits}$):** The model assigns probability mass across multiple acceptable continuations (e.g., descriptive prose, adjectives, connective adverbs). The watermarking sampler can freely steer choice toward green tokens with zero semantic penalty.

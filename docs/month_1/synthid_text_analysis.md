@@ -12,7 +12,7 @@
 
 Unlike digital media containers that encapsulate discrete pixel matrices, large language models (LLMs) emit text autoregressively as sequences of discrete vocabulary tokens. At each generation step $t$, given preceding context tokens $x_{<t} = (x_1, \ldots, x_{t-1})$ and a fixed vocabulary $V$, the model computes a logit vector $\ell_t \in \mathbb{R}^{|V|}$. A next-token probability distribution is obtained via the softmax activation function:
 
-$$p_{\text{LM}}(v \mid x_{<t}) = \frac{\exp(\ell_t(v))}{\sum_{v' \in V} \exp(\ell_t(v'))}, \quad \forall v \in V$$
+$$p_{\text{LM}}(v \mid x_{\lt t}) = \frac{\exp(\ell_t(v))}{\sum_{v' \in V} \exp(\ell_t(v'))}, \quad \forall v \in V$$
 
 Under standard temperature-scaled nucleus (top-$p$) sampling, token $x_t$ is sampled stochastically from $p_{\text{LM}}$. 
 

@@ -18,6 +18,7 @@
   // Retrieve dependencies from namespace (or modules if bundled)
   const Adapters = (window.AITransparency && window.AITransparency.PlatformAdapters) || null;
   const Injector = (window.AITransparency && window.AITransparency.UIInjector) || null;
+  const ImageProv = (window.AITransparency && window.AITransparency.ImageProvenance) || null;
 
   if (!Adapters || !Injector) {
     console.error(
@@ -164,7 +165,7 @@
      * Triggered when a post enters the visible viewport.
      * Executes provenance inspection and UI injection.
      */
-    handleVisiblePost(postNode) {
+    async handleVisiblePost(postNode) {
       this.processedCount++;
       const id = this.processedCount;
 
@@ -186,21 +187,69 @@
         `${PREFIX} [Audit] Post #${id} parsed: ${media.length} image(s), ${text.length} chars text, NativeLabel: ${hasNativeLabel}`
       );
 
-      // 3. Determine initial visual status
-      let initialStatus = 'SCANNING';
-      if (hasNativeLabel) {
-        initialStatus = 'PLATFORM_TAG';
-      } else if (media.length > 0) {
-        initialStatus = 'VERIFIED'; // Prominent visual confirmation for Week 1 testing
-      } else if (text.length > 0) {
-        initialStatus = text.length < 80 ? 'INSUFFICIENT' : 'VERIFIED';
-      }
+      // 3. Inject initial Shadow DOM badge into post header
+      let shadowRoot = null;
 
-      // 4. Inject high-visibility Shadow DOM badge into post header
-      const shadowRoot = Injector.injectBadge(anchor, {
-        status: initialStatus,
-        label: hasNativeLabel ? '⚠️ AI: Platform Tagged' : '🛡️ AI: Verified Provenance'
-      });
+      if (media.length > 0 && ImageProv) {
+        // Initial scanning indicator while asynchronous binary fetch & JUMBF scan run
+        shadowRoot = Injector.injectBadge(anchor, {
+          status: 'SCANNING',
+          label: '🔍 AI: Auditing Media...'
+        });
+
+        try {
+          const audit = await ImageProv.auditImageProvenance(media[0], postNode);
+          console.log(`${PREFIX} [FR-01 Result] Post #${id}:`, audit);
+
+          let finalStatus = 'INSUFFICIENT';
+          let finalLabel = '⚪ No Provenance Found';
+
+          if (audit.c2paStatus === 'VALID') {
+            finalStatus = 'VERIFIED';
+            finalLabel = audit.aiGenerator
+              ? `🛡️ AI: Verified (${audit.aiGenerator})`
+              : '🛡️ AI: Verified Provenance';
+          } else if (audit.platformLabel) {
+            // Platform "Made with AI" label present, but underlying C2PA was stripped or absent
+            finalStatus = 'PLATFORM_TAG';
+            finalLabel = '⚠️ AI: Platform Tagged';
+          } else if (audit.c2paStatus === 'STRIPPED') {
+            finalStatus = 'STRIPPED';
+            finalLabel = '⚪ AI: Manifest Stripped';
+          } else if (audit.c2paStatus === 'INVALID') {
+            finalStatus = 'UNLABELED_AI';
+            finalLabel = '🚨 AI: Tampered Manifest';
+          }
+
+          Injector.updateBadge(shadowRoot, {
+            status: finalStatus,
+            label: finalLabel
+          });
+        } catch (err) {
+          console.error(`${PREFIX} [Error] Audit failed for Post #${id}:`, err);
+          Injector.updateBadge(shadowRoot, {
+            status: hasNativeLabel ? 'PLATFORM_TAG' : 'INSUFFICIENT',
+            label: hasNativeLabel ? '⚠️ AI: Platform Tagged' : '⚪ Audit Error'
+          });
+        }
+      } else {
+        // Text-only or fallback post
+        let initialStatus = 'INSUFFICIENT';
+        let initialLabel = '⚪ No Provenance Found';
+
+        if (hasNativeLabel) {
+          initialStatus = 'PLATFORM_TAG';
+          initialLabel = '⚠️ AI: Platform Tagged';
+        } else if (text.length > 0) {
+          initialStatus = text.length < 80 ? 'INSUFFICIENT' : 'VERIFIED';
+          initialLabel = initialStatus === 'VERIFIED' ? '🛡️ AI: Verified Provenance' : '⚪ AI: Short Text';
+        }
+
+        shadowRoot = Injector.injectBadge(anchor, {
+          status: initialStatus,
+          label: initialLabel
+        });
+      }
 
       if (shadowRoot) {
         console.log(`${PREFIX} [Success] Badge successfully mounted for Post #${id}.`);

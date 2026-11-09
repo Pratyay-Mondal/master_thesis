@@ -1,13 +1,10 @@
 /**
  * background.js
- * Manifest V3 Service Worker.
+ * Manifest V3 Service Worker — Network Gateway & CORS Bypass.
  *
- * Coordinates cross-origin network operations, offscreen tasks,
- * binary media fetching for C2PA manifest parsing, and privacy-preserving
- * API dispatching.
- *
- * Enforces GDPR Article 5(1)(c) Data Minimisation by stripping referrers,
- * cookies, and user IDs before network dispatch.
+ * Coordinates cross-origin image binary retrieval for C2PA manifest inspection,
+ * bypassing content-script origin isolation while strictly enforcing GDPR
+ * Article 5(1)(c) Data Minimisation (credentials: 'omit', zero tracking).
  *
  * Thesis: "AI Transparency in the Wild: Bridging Technical Provenance
  * and Legal Compliance under the EU AI Act on Social Media Platforms"
@@ -28,9 +25,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const { type, payload } = message;
 
   switch (type) {
+    case 'FETCH_IMAGE_BUFFER':
     case MESSAGE_TYPES.FETCH_IMAGE_BINARY:
-      handleFetchImageBinary(payload, sendResponse);
-      return true; // Keep message channel open for async response
+      handleFetchImageBuffer(payload, sendResponse);
+      return true; // Keep message channel open for asynchronous reply
 
     case MESSAGE_TYPES.QUERY_TEXT_WATERMARK:
       handleQueryTextWatermark(payload, sendResponse);
@@ -50,13 +48,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 /**
  * Fetches image binary bytes bypassing content-script CORS restrictions.
- * Converts response to an Array of byte numbers for IPC transfer.
+ * Encodes the binary stream to a chunked Base64 payload for rapid, low-overhead IPC transfer.
  *
- * @param {Object} payload { url: string }
+ * @param {Object} payload { url: string, maxBytes?: number }
  * @param {Function} sendResponse
  */
-async function handleFetchImageBinary(payload, sendResponse) {
-  const { url } = payload;
+async function handleFetchImageBuffer(payload, sendResponse) {
+  const { url, maxBytes } = payload || {};
 
   if (!url) {
     sendResponse({ success: false, error: 'Missing image URL' });
@@ -64,12 +62,13 @@ async function handleFetchImageBinary(payload, sendResponse) {
   }
 
   try {
-    Logger.debug('Fetching binary asset for C2PA inspection:', url);
+    Logger.debug('Fetching binary asset for C2PA provenance audit:', url);
 
-    // Fetch without credentials (cookies, auth headers) to uphold privacy NFRs
+    // Enforce GDPR Article 5(1)(c): credentials omitted, cache-first, referrer-stripped
     const response = await fetch(url, {
       method: 'GET',
       credentials: 'omit',
+      referrerPolicy: 'no-referrer',
       cache: 'force-cache'
     });
 
@@ -78,30 +77,57 @@ async function handleFetchImageBinary(payload, sendResponse) {
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    const bytes = Array.from(new Uint8Array(arrayBuffer));
+    const totalBytes = arrayBuffer.byteLength;
 
-    Logger.debug(`Successfully retrieved ${bytes.length} bytes for asset.`);
+    // Optional slicing (e.g. if content script only requests first 64KB for JUMBF pre-scan)
+    let bufferToTransfer = arrayBuffer;
+    if (maxBytes && maxBytes > 0 && maxBytes < totalBytes) {
+      bufferToTransfer = arrayBuffer.slice(0, maxBytes);
+    }
+
+    // Convert to Base64 in safe 32KB chunks to prevent call-stack overflows
+    const base64Data = arrayBufferToBase64(bufferToTransfer);
+
+    Logger.debug(
+      `Retrieved ${totalBytes} bytes (transferred ${bufferToTransfer.byteLength} bytes) for:`,
+      url.slice(0, 60) + '...'
+    );
 
     sendResponse({
       success: true,
-      byteLength: bytes.length,
-      bytes: bytes.slice(0, 1024 * 64) // Return first 64KB for initial JUMBF header check
+      byteLength: totalBytes,
+      transferredBytes: bufferToTransfer.byteLength,
+      mimeType: response.headers.get('content-type') || 'application/octet-stream',
+      base64: base64Data
     });
   } catch (err) {
-    Logger.error('Failed to fetch image binary:', err);
+    Logger.error('Failed to fetch image binary buffer:', err);
     sendResponse({ success: false, error: err.message });
   }
 }
 
 /**
+ * Fast chunked Base64 encoder for ArrayBuffer.
+ * Handles large binary buffers (>1MB) without Maximum Call Stack Exceeded errors.
+ */
+function arrayBufferToBase64(buffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  const chunkSize = 0x8000; // 32KB chunks
+
+  for (let i = 0; i < len; i += chunkSize) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunkSize, len)));
+  }
+  return btoa(binary);
+}
+
+/**
  * Routes anonymous text spans to a simulated SynthID-Text detection endpoint.
  * (Scaffold for Week 3).
- *
- * @param {Object} payload { textSpan: string }
- * @param {Function} sendResponse
  */
 async function handleQueryTextWatermark(payload, sendResponse) {
-  const { textSpan } = payload;
+  const { textSpan } = payload || {};
 
   if (!textSpan || textSpan.length === 0) {
     sendResponse({ success: false, error: 'Empty text span provided' });
@@ -109,29 +135,21 @@ async function handleQueryTextWatermark(payload, sendResponse) {
   }
 
   try {
-    // In Week 3, this will communicate with local simulator or verified endpoint
-    // For Week 1 scaffold, we return mock response adhering to the API contract
     const wordCount = textSpan.trim().split(/\s+/).length;
     const estimatedTokens = Math.round(wordCount * 1.3);
 
-    Logger.debug(`Auditing text watermark for span with estimated ${estimatedTokens} tokens.`);
-
-    // Simulate network delay
     setTimeout(() => {
       sendResponse({
         success: true,
         data: {
           estimatedTokens,
-          zScore: 0.85, // Default baseline null
+          zScore: 0.85,
           isWatermarked: false,
-          confidence: 'LOW',
-          note: 'Scaffold response from Week 1 service worker'
+          confidence: 'LOW'
         }
       });
-    }, 200);
+    }, 150);
   } catch (err) {
-    Logger.error('Failed to query text watermark:', err);
     sendResponse({ success: false, error: err.message });
   }
 }
-

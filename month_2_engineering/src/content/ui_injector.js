@@ -42,6 +42,15 @@
       glow: 'rgba(217, 119, 6, 0.45)',
       description: 'Platform "Made with AI" label present; underlying manifest stripped by CDN.'
     },
+    STRIPPED: {
+      key: 'STRIPPED',
+      label: '⚪ AI: Manifest Stripped',
+      bg: '#374151',
+      border: '#6b7280',
+      text: '#f9fafb',
+      glow: 'rgba(107, 114, 128, 0.3)',
+      description: 'Image binary contains no surviving C2PA JUMBF metadata (CDN ingestion pipeline destroyed provenance).'
+    },
     UNLABELED_AI: {
       key: 'UNLABELED_AI',
       label: '🚨 AI: Undisclosed Synthetic Media',

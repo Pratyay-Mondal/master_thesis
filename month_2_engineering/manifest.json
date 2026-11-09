@@ -43,6 +43,9 @@
       "js": [
         "src/content/platform_adapters.js",
         "src/content/ui_injector.js",
+        "src/modules/jumbf_scanner.js",
+        "src/modules/wasm_loader.js",
+        "src/modules/image_provenance.js",
         "src/content/content_script.js"
       ],
       "run_at": "document_idle"
@@ -52,7 +55,9 @@
     {
       "resources": [
         "public/icons/*",
-        "src/content/*"
+        "public/wasm/*",
+        "src/content/*",
+        "src/modules/*"
       ],
       "matches": [
         "<all_urls>"

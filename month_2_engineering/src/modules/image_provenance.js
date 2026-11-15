@@ -154,24 +154,34 @@
      */
     static fetchImageBufferFromBackground(url) {
       return new Promise((resolve, reject) => {
-        if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.sendMessage) {
+        if (typeof chrome === 'undefined' || !chrome.runtime || typeof chrome.runtime.sendMessage !== 'function') {
           reject(new Error('chrome.runtime API is unavailable in this context'));
           return;
         }
 
-        chrome.runtime.sendMessage(
-          {
-            type: 'FETCH_IMAGE_BUFFER',
-            payload: { url }
-          },
-          (response) => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-            } else {
-              resolve(response);
+        // In Chrome browser, an undefined runtime.id indicates an invalidated extension context
+        if (typeof process === 'undefined' && typeof chrome.runtime.id === 'undefined') {
+          reject(new Error('Extension context invalidated. Please reload the webpage to reconnect the extension.'));
+          return;
+        }
+
+        try {
+          chrome.runtime.sendMessage(
+            {
+              type: 'FETCH_IMAGE_BUFFER',
+              payload: { url }
+            },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message || 'Background worker error'));
+              } else {
+                resolve(response);
+              }
             }
-          }
-        );
+          );
+        } catch (err) {
+          reject(new Error(err.message || 'Failed to dispatch message to background worker'));
+        }
       });
     }
 
@@ -191,3 +201,4 @@
 
   return ImageProvenanceCoordinator;
 });
+

@@ -19,6 +19,8 @@
   const Adapters = (window.AITransparency && window.AITransparency.PlatformAdapters) || null;
   const Injector = (window.AITransparency && window.AITransparency.UIInjector) || null;
   const ImageProv = (window.AITransparency && window.AITransparency.ImageProvenance) || null;
+  const TextProv = (window.AITransparency && window.AITransparency.TextProvenance) || null;
+  const Compliance = (window.AITransparency && window.AITransparency.ComplianceEngine) || null;
 
   if (!Adapters || !Injector) {
     console.error(
@@ -61,9 +63,36 @@
     }
 
     /**
+     * Verifies that the Chrome extension context is still alive.
+     */
+    isContextValid() {
+      return typeof chrome !== 'undefined' && Boolean(chrome.runtime && chrome.runtime.id);
+    }
+
+    /**
+     * Tears down observers if the extension was reloaded in chrome://extensions.
+     */
+    checkContextOrTeardown() {
+      if (!this.isContextValid()) {
+        if (this.mutationObserver) {
+          this.mutationObserver.disconnect();
+          this.mutationObserver = null;
+        }
+        if (this.intersectionObserver) {
+          this.intersectionObserver.disconnect();
+          this.intersectionObserver = null;
+        }
+        console.warn(`${PREFIX} [Context] Extension context was invalidated (reloaded). Observers disconnected. Please refresh the page.`);
+        return false;
+      }
+      return true;
+    }
+
+    /**
      * Handles single-page app route changes (e.g. clicking from FB Feed to Profile).
      */
     handleNavigationChange() {
+      if (!this.checkContextOrTeardown()) return;
       const currentPlatform = Adapters.detectPlatform();
       if (currentPlatform !== this.platform) {
         this.platform = currentPlatform;
@@ -147,7 +176,7 @@
      * Queries DOM for uninspected posts and hands them to the IntersectionObserver.
      */
     queueUninspectedPosts(root) {
-      if (!root) return;
+      if (!root || !this.checkContextOrTeardown()) return;
 
       const posts = Adapters.queryUninspectedPosts(this.platform, root);
       if (posts.length === 0) return;
@@ -163,9 +192,10 @@
 
     /**
      * Triggered when a post enters the visible viewport.
-     * Executes provenance inspection and UI injection.
+     * Executes parallel FR-01 (Image C2PA) and FR-02 (Text SynthID) provenance audits.
      */
     async handleVisiblePost(postNode) {
+      if (!this.checkContextOrTeardown()) return;
       this.processedCount++;
       const id = this.processedCount;
 
@@ -178,82 +208,151 @@
         return;
       }
 
-      // 2. Perform initial heuristic checks (Platform native label)
+      // 2. Inspect DOM for native labels & media elements
       const hasNativeLabel = Adapters.detectPlatformNativeLabel(this.platform, postNode);
       const media = Adapters.extractMediaElements(this.platform, postNode);
-      const text = Adapters.extractTextContent(this.platform, postNode);
 
-      console.log(
-        `${PREFIX} [Audit] Post #${id} parsed: ${media.length} image(s), ${text.length} chars text, NativeLabel: ${hasNativeLabel}`
-      );
+      // 3. Mount <ai-transparency-badge> Custom Element immediately in SCANNING state
+      const badgeElement = Injector.mountComplianceBadge(anchor);
 
-      // 3. Inject initial Shadow DOM badge into post header
-      let shadowRoot = null;
+      try {
+        // 4. Run Image (FR-01) and Text (FR-02) provenance pipelines concurrently
+        const imageAuditPromise =
+          media.length > 0 && ImageProv
+            ? ImageProv.auditImageProvenance(media[0], postNode)
+            : Promise.resolve(null);
 
-      if (media.length > 0 && ImageProv) {
-        // Initial scanning indicator while asynchronous binary fetch & JUMBF scan run
-        shadowRoot = Injector.injectBadge(anchor, {
-          status: 'SCANNING',
-          label: '🔍 AI: Auditing Media...'
-        });
+        const textAuditPromise = TextProv
+          ? TextProv.auditTextProvenance(this.platform, postNode)
+          : Promise.resolve(null);
 
-        try {
-          const audit = await ImageProv.auditImageProvenance(media[0], postNode);
-          console.log(`${PREFIX} [FR-01 Result] Post #${id}:`, audit);
+        const [imageAudit, textAudit] = await Promise.all([imageAuditPromise, textAuditPromise]);
 
-          let finalStatus = 'INSUFFICIENT';
-          let finalLabel = '⚪ No Provenance Found';
-
-          if (audit.c2paStatus === 'VALID') {
-            finalStatus = 'VERIFIED';
-            finalLabel = audit.aiGenerator
-              ? `🛡️ AI: Verified (${audit.aiGenerator})`
-              : '🛡️ AI: Verified Provenance';
-          } else if (audit.platformLabel) {
-            // Platform "Made with AI" label present, but underlying C2PA was stripped or absent
-            finalStatus = 'PLATFORM_TAG';
-            finalLabel = '⚠️ AI: Platform Tagged';
-          } else if (audit.c2paStatus === 'STRIPPED') {
-            finalStatus = 'STRIPPED';
-            finalLabel = '⚪ AI: Manifest Stripped';
-          } else if (audit.c2paStatus === 'INVALID') {
-            finalStatus = 'UNLABELED_AI';
-            finalLabel = '🚨 AI: Tampered Manifest';
+        // 5. Evaluate EU AI Act Article 50 compliance (FR-03) and bind to Web Component (FR-04)
+        if (Compliance && badgeElement) {
+          const complianceVerdict = Compliance.evaluateCompliance(imageAudit, textAudit, hasNativeLabel);
+          badgeElement.complianceData = complianceVerdict;
+          console.log(
+            `${PREFIX} [FR-03/04] Post #${id} Verdict [${complianceVerdict.overallState}]:`,
+            complianceVerdict
+          );
+        } else {
+          // Legacy fallback if ComplianceEngine is unavailable
+          const fallbackShadow = Injector.injectBadge(anchor, this.resolveCombinedBadgeState({
+            imageAudit,
+            textAudit,
+            hasNativeLabel
+          }));
+          if (fallbackShadow) {
+            console.log(`${PREFIX} [Fallback] Legacy badge updated for Post #${id}.`);
           }
-
-          Injector.updateBadge(shadowRoot, {
-            status: finalStatus,
-            label: finalLabel
-          });
-        } catch (err) {
-          console.error(`${PREFIX} [Error] Audit failed for Post #${id}:`, err);
-          Injector.updateBadge(shadowRoot, {
-            status: hasNativeLabel ? 'PLATFORM_TAG' : 'INSUFFICIENT',
-            label: hasNativeLabel ? '⚠️ AI: Platform Tagged' : '⚪ Audit Error'
-          });
         }
-      } else {
-        // Text-only or fallback post
-        let initialStatus = 'INSUFFICIENT';
-        let initialLabel = '⚪ No Provenance Found';
-
-        if (hasNativeLabel) {
-          initialStatus = 'PLATFORM_TAG';
-          initialLabel = '⚠️ AI: Platform Tagged';
-        } else if (text.length > 0) {
-          initialStatus = text.length < 80 ? 'INSUFFICIENT' : 'VERIFIED';
-          initialLabel = initialStatus === 'VERIFIED' ? '🛡️ AI: Verified Provenance' : '⚪ AI: Short Text';
+      } catch (err) {
+        console.error(`${PREFIX} [Error] Multimodal audit failed for Post #${id}:`, err);
+        if (badgeElement) {
+          badgeElement.complianceData = Compliance
+            ? Compliance.evaluateCompliance(null, null, hasNativeLabel)
+            : { overallState: hasNativeLabel ? 'PLATFORM_TAGGED' : 'NO_SIGNAL' };
         }
+      }
+    }
 
-        shadowRoot = Injector.injectBadge(anchor, {
-          status: initialStatus,
-          label: initialLabel
-        });
+    /**
+     * Synthesizes FR-01 (Image C2PA) and FR-02 (Text Watermark) signals with
+     * EU AI Act Article 50 disclosure checks to produce the unified badge state.
+     *
+     * @param {{ imageAudit: Object|null, textAudit: Object|null, hasNativeLabel: boolean }} params
+     * @returns {{ status: string, label: string, details: string }}
+     */
+    resolveCombinedBadgeState({ imageAudit, textAudit, hasNativeLabel }) {
+      const detailParts = [];
+      if (imageAudit) detailParts.push(`Image: ${imageAudit.details}`);
+      if (textAudit) detailParts.push(`Text: ${textAudit.details}`);
+      const combinedDetails = detailParts.join(' | ') || 'No inspectable media or text found.';
+
+      // Case 1: Tampered cryptographic manifest -> critical alert
+      if (imageAudit?.c2paStatus === 'INVALID') {
+        return {
+          status: 'UNLABELED_AI',
+          label: '🚨 AI: Tampered Manifest',
+          details: combinedDetails
+        };
       }
 
-      if (shadowRoot) {
-        console.log(`${PREFIX} [Success] Badge successfully mounted for Post #${id}.`);
+      // Case 2: Statistical AI text watermark detected WITHOUT visible Art. 50(4) disclosure
+      if (textAudit?.isWatermarked && !hasNativeLabel) {
+        return {
+          status: 'UNLABELED_AI',
+          label: `🚨 AI: Undisclosed AI Text (z=${textAudit.zScore.toFixed(1)})`,
+          details: combinedDetails
+        };
       }
+
+      // Case 3: Verified C2PA provenance OR disclosed watermarked AI text
+      if (imageAudit?.c2paStatus === 'VALID' || (textAudit?.isWatermarked && hasNativeLabel)) {
+        const label =
+          imageAudit?.c2paStatus === 'VALID'
+            ? imageAudit.aiGenerator
+              ? `🛡️ AI: Verified (${imageAudit.aiGenerator})`
+              : '🛡️ AI: Verified Provenance'
+            : `🛡️ AI: Watermarked & Disclosed (z=${textAudit.zScore.toFixed(1)})`;
+
+        return {
+          status: 'VERIFIED',
+          label,
+          details: combinedDetails
+        };
+      }
+
+      // Case 4: Platform Ingestion Trap (Meta "Made with AI" present, but C2PA stripped & no text watermark)
+      if (hasNativeLabel || imageAudit?.platformLabel) {
+        return {
+          status: 'PLATFORM_TAG',
+          label: '⚠️ AI: Platform Tagged',
+          details: combinedDetails
+        };
+      }
+
+      // Case 5: Image manifest stripped without platform tag
+      if (imageAudit?.c2paStatus === 'STRIPPED') {
+        return {
+          status: 'STRIPPED',
+          label: '⚪ AI: Manifest Stripped',
+          details: combinedDetails
+        };
+      }
+
+      // Case 6: Text evaluated cleanly and found free of statistical watermark
+      if (textAudit?.status === 'NO_WATERMARK') {
+        return {
+          status: 'NO_WATERMARK',
+          label: `⚪ No AI Signal (z=${textAudit.zScore.toFixed(1)})`,
+          details: combinedDetails
+        };
+      }
+
+      // Case 7: Short or low-entropy text span (T < 50 tokens or low Shannon entropy)
+      if (textAudit?.status === 'LOW_ENTROPY') {
+        return {
+          status: 'INSUFFICIENT',
+          label: '⚪ AI: Low-Entropy Span',
+          details: combinedDetails
+        };
+      }
+
+      if (textAudit?.status === 'INSUFFICIENT_LENGTH') {
+        return {
+          status: 'INSUFFICIENT',
+          label: `⚪ AI: Short Text (${textAudit.tokenCount} tok)`,
+          details: combinedDetails
+        };
+      }
+
+      return {
+        status: 'INSUFFICIENT',
+        label: '⚪ No Provenance Found',
+        details: combinedDetails
+      };
     }
   }
 

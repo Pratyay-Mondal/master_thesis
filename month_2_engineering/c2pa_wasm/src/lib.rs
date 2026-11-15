@@ -149,3 +149,4 @@ pub fn verify_c2pa_buffer(buffer: &[u8]) -> String {
 
     serde_json::to_string(&result).unwrap_or_else(|_| r#"{"status":"NO_MANIFEST","valid":false}"#.to_string())
 }
+

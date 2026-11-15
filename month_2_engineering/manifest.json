@@ -42,10 +42,16 @@
       ],
       "js": [
         "src/content/platform_adapters.js",
+        "src/ui/drawer_component.js",
+        "src/ui/badge_component.js",
         "src/content/ui_injector.js",
         "src/modules/jumbf_scanner.js",
         "src/modules/wasm_loader.js",
         "src/modules/image_provenance.js",
+        "src/modules/text_extractor.js",
+        "src/modules/text_analyzer.js",
+        "src/modules/text_provenance.js",
+        "src/modules/compliance_engine.js",
         "src/content/content_script.js"
       ],
       "run_at": "document_idle"
@@ -57,7 +63,8 @@
         "public/icons/*",
         "public/wasm/*",
         "src/content/*",
-        "src/modules/*"
+        "src/modules/*",
+        "src/ui/*"
       ],
       "matches": [
         "<all_urls>"

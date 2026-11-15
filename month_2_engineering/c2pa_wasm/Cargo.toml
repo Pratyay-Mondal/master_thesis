@@ -3,7 +3,7 @@ name = "c2pa_wasm"
 version = "0.1.0"
 edition = "2021"
 description = "Lightweight WebAssembly C2PA manifest validator for browser extensions"
-authors = ["Pratyay Mondal <p.mondal@student.thws.de>"]
+authors = ["Pratyay Mondal <pratyay.mondal@study.thws.de>"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -21,3 +21,4 @@ opt-level = "s"
 lto = true
 codegen-units = 1
 panic = "abort"
+

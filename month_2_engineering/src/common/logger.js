@@ -6,9 +6,14 @@
 
 const PREFIX = '[AI-Transparency-Validator]';
 
+// Safe environment detection that never throws ReferenceError in browser contexts
+const isDev =
+  typeof process === 'undefined' ||
+  (typeof process !== 'undefined' && Boolean(process.env && process.env.NODE_ENV !== 'production'));
+
 export const Logger = {
   debug: (...args) => {
-    if (process.env.NODE_ENV !== 'production') {
+    if (isDev) {
       console.debug(PREFIX, ...args);
     }
   },
@@ -25,4 +30,3 @@ export const Logger = {
     console.log(`${PREFIX} [${category}]`, payload);
   }
 };
-

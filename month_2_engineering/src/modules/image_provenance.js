@@ -73,13 +73,18 @@
       try {
         fetchResult = await this.fetchImageBufferFromBackground(imageUrl);
       } catch (err) {
-        console.warn('[AI-Transparency-Validator] [FR-01] Background fetch failed:', err.message);
+        const isInvalidated = err.message && err.message.includes('Extension context invalidated');
+        if (!isInvalidated) {
+          console.warn('[AI-Transparency-Validator] [FR-01] Background fetch failed:', err.message);
+        }
         return {
           c2paStatus: 'FETCH_FAILED',
           platformLabel: hasPlatformLabel,
           aiGenerator: null,
           claimGenerator: null,
-          details: `Failed to fetch binary asset: ${err.message}`,
+          details: isInvalidated
+            ? 'Extension context was invalidated (reloaded). Please reload this tab.'
+            : `Failed to fetch binary asset: ${err.message}`,
           byteLength: 0
         };
       }
@@ -159,9 +164,16 @@
           return;
         }
 
-        // In Chrome browser, an undefined runtime.id indicates an invalidated extension context
-        if (typeof process === 'undefined' && typeof chrome.runtime.id === 'undefined') {
-          reject(new Error('Extension context invalidated. Please reload the webpage to reconnect the extension.'));
+        // Detect extension context invalidation
+        try {
+          if (typeof chrome.runtime.getManifest === 'function') {
+            chrome.runtime.getManifest();
+          } else if (typeof process === 'undefined' && typeof chrome.runtime.id === 'undefined') {
+            reject(new Error('Extension context invalidated.'));
+            return;
+          }
+        } catch (e) {
+          reject(new Error('Extension context invalidated.'));
           return;
         }
 
@@ -173,7 +185,8 @@
             },
             (response) => {
               if (chrome.runtime.lastError) {
-                reject(new Error(chrome.runtime.lastError.message || 'Background worker error'));
+                const msg = chrome.runtime.lastError.message || 'Background worker error';
+                reject(new Error(msg));
               } else {
                 resolve(response);
               }

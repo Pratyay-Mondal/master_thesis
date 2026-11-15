@@ -103,7 +103,7 @@ async function handleFetchImageBuffer(payload, sendResponse) {
       base64: base64Data
     });
   } catch (err) {
-    Logger.error('Failed to fetch image binary buffer:', err);
+    Logger.warn('Failed to fetch image binary buffer:', err.message);
     sendResponse({ success: false, error: err.message });
   }
 }
@@ -270,7 +270,7 @@ export async function handleVerifyTextWatermark(payload, sendResponse) {
       isWatermarked: result.isWatermarked
     });
   } catch (err) {
-    Logger.error('[FR-02] SynthID-Text watermark verification failed:', err);
+    Logger.warn('[FR-02] SynthID-Text watermark verification failed:', err.message);
     sendResponse({ success: false, error: err.message });
   }
 }

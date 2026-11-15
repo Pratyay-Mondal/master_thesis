@@ -23,8 +23,13 @@
     "*://*.facebook.com/*",
     "*://*.instagram.com/*",
     "*://*.whatsapp.com/*",
+    "*://*.fbcdn.net/*",
+    "*://*.fbsbx.com/*",
+    "*://*.cdninstagram.com/*",
+    "*://*.whatsapp.net/*",
     "*://localhost/*",
-    "*://127.0.0.1/*"
+    "*://127.0.0.1/*",
+    "https://*/*"
   ],
   "background": {
     "service_worker": "src/background/background.js",

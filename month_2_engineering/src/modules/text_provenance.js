@@ -157,7 +157,10 @@
             : `No statistical watermark signal detected (z=${zScore.toFixed(2)}, p=${pValue}, T=${tokenCount} tokens).`
         };
       } catch (err) {
-        console.error('[AI-Transparency-Validator] [FR-02] Text watermark dispatch failed:', err);
+        const isInvalidated = err.message && err.message.includes('Extension context invalidated');
+        if (!isInvalidated) {
+          console.error('[AI-Transparency-Validator] [FR-02] Text watermark dispatch failed:', err);
+        }
         return {
           status: 'API_ERROR',
           tokenCount,
@@ -167,7 +170,9 @@
           pValue: null,
           isWatermarked: false,
           isLowEntropy,
-          details: `IPC dispatch failure: ${err.message}`
+          details: isInvalidated
+            ? 'Extension context was invalidated (reloaded). Please reload this tab.'
+            : `IPC dispatch failure: ${err.message}`
         };
       }
     }
@@ -186,9 +191,16 @@
           return;
         }
 
-        // In Chrome browser, an undefined runtime.id indicates an invalidated extension context
-        if (typeof process === 'undefined' && typeof chrome.runtime.id === 'undefined') {
-          reject(new Error('Extension context invalidated. Please reload the webpage to reconnect the extension.'));
+        // Detect extension context invalidation
+        try {
+          if (typeof chrome.runtime.getManifest === 'function') {
+            chrome.runtime.getManifest();
+          } else if (typeof process === 'undefined' && typeof chrome.runtime.id === 'undefined') {
+            reject(new Error('Extension context invalidated.'));
+            return;
+          }
+        } catch (e) {
+          reject(new Error('Extension context invalidated.'));
           return;
         }
 
@@ -200,7 +212,8 @@
             },
             (response) => {
               if (chrome.runtime.lastError) {
-                reject(new Error(chrome.runtime.lastError.message || 'Background worker error'));
+                const msg = chrome.runtime.lastError.message || 'Background worker error';
+                reject(new Error(msg));
               } else {
                 resolve(response);
               }

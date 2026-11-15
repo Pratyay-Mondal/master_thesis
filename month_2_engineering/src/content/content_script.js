@@ -66,11 +66,21 @@
      * Verifies that the Chrome extension context is still alive.
      */
     isContextValid() {
-      return typeof chrome !== 'undefined' && Boolean(chrome.runtime && chrome.runtime.id);
+      try {
+        if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+          return false;
+        }
+        if (typeof chrome.runtime.getManifest === 'function') {
+          chrome.runtime.getManifest();
+        }
+        return true;
+      } catch (e) {
+        return false;
+      }
     }
 
     /**
-     * Tears down observers if the extension was reloaded in chrome://extensions.
+     * Tears down observers silently if the extension was reloaded in chrome://extensions.
      */
     checkContextOrTeardown() {
       if (!this.isContextValid()) {
@@ -82,7 +92,6 @@
           this.intersectionObserver.disconnect();
           this.intersectionObserver = null;
         }
-        console.warn(`${PREFIX} [Context] Extension context was invalidated (reloaded). Observers disconnected. Please refresh the page.`);
         return false;
       }
       return true;
@@ -248,6 +257,11 @@
           }
         }
       } catch (err) {
+        const isInvalidated = err.message && err.message.includes('Extension context invalidated');
+        if (isInvalidated) {
+          this.checkContextOrTeardown();
+          return;
+        }
         console.error(`${PREFIX} [Error] Multimodal audit failed for Post #${id}:`, err);
         if (badgeElement) {
           badgeElement.complianceData = Compliance

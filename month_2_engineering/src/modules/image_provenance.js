@@ -73,9 +73,11 @@
       try {
         fetchResult = await this.fetchImageBufferFromBackground(imageUrl);
       } catch (err) {
-        const isInvalidated = err.message && err.message.includes('Extension context invalidated');
+        const errorMsg = String(err?.message || err || '');
+        const isInvalidated =
+          errorMsg.toLowerCase().includes('invalidat') || errorMsg.toLowerCase().includes('closed');
         if (!isInvalidated) {
-          console.warn('[AI-Transparency-Validator] [FR-01] Background fetch failed:', err.message);
+          console.warn('[AI-Transparency-Validator] [FR-01] Background fetch failed:', errorMsg);
         }
         return {
           c2paStatus: 'FETCH_FAILED',
@@ -84,19 +86,24 @@
           claimGenerator: null,
           details: isInvalidated
             ? 'Extension context was invalidated (reloaded). Please reload this tab.'
-            : `Failed to fetch binary asset: ${err.message}`,
-          byteLength: 0
+            : `Failed to fetch binary asset: ${errorMsg}`,
+          byteLength: 0,
+          contextInvalidated: isInvalidated
         };
       }
 
       if (!fetchResult || !fetchResult.success || !fetchResult.base64) {
+        const isInvalidated = Boolean(fetchResult?.contextInvalidated);
         return {
           c2paStatus: 'FETCH_FAILED',
           platformLabel: hasPlatformLabel,
           aiGenerator: null,
           claimGenerator: null,
-          details: fetchResult?.error || 'Empty response from background fetcher',
-          byteLength: 0
+          details: isInvalidated
+            ? 'Extension context was invalidated (reloaded). Please reload this tab.'
+            : (fetchResult?.error || 'Empty response from background fetcher'),
+          byteLength: 0,
+          contextInvalidated: isInvalidated
         };
       }
 
@@ -157,23 +164,42 @@
     /**
      * Dispatches IPC message to background service worker to fetch binary asset.
      */
-    static fetchImageBufferFromBackground(url) {
-      return new Promise((resolve, reject) => {
-        if (typeof chrome === 'undefined' || !chrome.runtime || typeof chrome.runtime.sendMessage !== 'function') {
-          reject(new Error('chrome.runtime API is unavailable in this context'));
-          return;
-        }
-
-        // Detect extension context invalidation
+    /**
+     * Checks if the Chrome extension runtime is active and connected.
+     */
+    static isRuntimeValid() {
+      if (typeof chrome === 'undefined' || !chrome || !chrome.runtime) {
+        return false;
+      }
+      if (typeof chrome.runtime.sendMessage !== 'function') {
+        return false;
+      }
+      if (typeof process === 'undefined') {
         try {
+          if (!chrome.runtime.id) return false;
           if (typeof chrome.runtime.getManifest === 'function') {
             chrome.runtime.getManifest();
-          } else if (typeof process === 'undefined' && typeof chrome.runtime.id === 'undefined') {
-            reject(new Error('Extension context invalidated.'));
-            return;
           }
         } catch (e) {
-          reject(new Error('Extension context invalidated.'));
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /**
+     * Dispatches IPC message to background service worker to fetch binary asset.
+     * Always resolves with an object ({ success: true, base64: ... } or { success: false, error: ... })
+     * and NEVER rejects, preventing unhandled/handled Error exceptions in Chromium's error dashboard.
+     */
+    static fetchImageBufferFromBackground(url) {
+      return new Promise((resolve) => {
+        if (!this.isRuntimeValid()) {
+          resolve({
+            success: false,
+            error: 'Extension context invalidated. Please reload this tab.',
+            contextInvalidated: true
+          });
           return;
         }
 
@@ -186,14 +212,26 @@
             (response) => {
               if (chrome.runtime.lastError) {
                 const msg = chrome.runtime.lastError.message || 'Background worker error';
-                reject(new Error(msg));
+                const isInvalidated =
+                  msg.toLowerCase().includes('invalidat') || msg.toLowerCase().includes('closed');
+                resolve({
+                  success: false,
+                  error: msg,
+                  contextInvalidated: isInvalidated
+                });
               } else {
-                resolve(response);
+                resolve(response || { success: false, error: 'Empty response from background worker' });
               }
             }
           );
         } catch (err) {
-          reject(new Error(err.message || 'Failed to dispatch message to background worker'));
+          const msg = err?.message || 'Failed to dispatch message';
+          const isInvalidated = msg.toLowerCase().includes('invalidat');
+          resolve({
+            success: false,
+            error: msg,
+            contextInvalidated: isInvalidated
+          });
         }
       });
     }

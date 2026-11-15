@@ -125,6 +125,7 @@
         const apiResponse = await this.verifyTextWithBackground(extractedText);
 
         if (!apiResponse || apiResponse.success !== true) {
+          const isInvalidated = Boolean(apiResponse?.contextInvalidated);
           return {
             status: 'API_ERROR',
             tokenCount,
@@ -134,7 +135,10 @@
             pValue: null,
             isWatermarked: false,
             isLowEntropy,
-            details: apiResponse?.error || 'SynthID-Text verification gateway returned an error.'
+            details: isInvalidated
+              ? 'Extension context was invalidated (reloaded). Please reload this tab.'
+              : (apiResponse?.error || 'SynthID-Text verification gateway returned an error.'),
+            contextInvalidated: isInvalidated
           };
         }
 
@@ -157,7 +161,9 @@
             : `No statistical watermark signal detected (z=${zScore.toFixed(2)}, p=${pValue}, T=${tokenCount} tokens).`
         };
       } catch (err) {
-        const isInvalidated = err.message && err.message.includes('Extension context invalidated');
+        const errorMsg = String(err?.message || err || '');
+        const isInvalidated =
+          errorMsg.toLowerCase().includes('invalidat') || errorMsg.toLowerCase().includes('closed');
         if (!isInvalidated) {
           console.error('[AI-Transparency-Validator] [FR-02] Text watermark dispatch failed:', err);
         }
@@ -172,35 +178,52 @@
           isLowEntropy,
           details: isInvalidated
             ? 'Extension context was invalidated (reloaded). Please reload this tab.'
-            : `IPC dispatch failure: ${err.message}`
+            : `IPC dispatch failure: ${errorMsg}`,
+          contextInvalidated: isInvalidated
         };
       }
     }
 
     /**
+     * Checks if the Chrome extension runtime is active and connected.
+     */
+    static isRuntimeValid() {
+      if (typeof chrome === 'undefined' || !chrome || !chrome.runtime) {
+        return false;
+      }
+      if (typeof chrome.runtime.sendMessage !== 'function') {
+        return false;
+      }
+      if (typeof process === 'undefined') {
+        try {
+          if (!chrome.runtime.id) return false;
+          if (typeof chrome.runtime.getManifest === 'function') {
+            chrome.runtime.getManifest();
+          }
+        } catch (e) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /**
      * Dispatches strictly minimized { text } payload to MV3 Service Worker.
      * Ensures zero leakage of platform, URL, author, or user identifiers (NFR-01).
+     * Always resolves with an object ({ success: true, ... } or { success: false, ... })
+     * and NEVER rejects, preventing unhandled/handled Error exceptions in Chromium's error dashboard.
      *
      * @param {string} text
      * @returns {Promise<Object>}
      */
     static verifyTextWithBackground(text) {
-      return new Promise((resolve, reject) => {
-        if (typeof chrome === 'undefined' || !chrome.runtime || typeof chrome.runtime.sendMessage !== 'function') {
-          reject(new Error('chrome.runtime.sendMessage API is unavailable in this context'));
-          return;
-        }
-
-        // Detect extension context invalidation
-        try {
-          if (typeof chrome.runtime.getManifest === 'function') {
-            chrome.runtime.getManifest();
-          } else if (typeof process === 'undefined' && typeof chrome.runtime.id === 'undefined') {
-            reject(new Error('Extension context invalidated.'));
-            return;
-          }
-        } catch (e) {
-          reject(new Error('Extension context invalidated.'));
+      return new Promise((resolve) => {
+        if (!this.isRuntimeValid()) {
+          resolve({
+            success: false,
+            error: 'Extension context invalidated. Please reload this tab.',
+            contextInvalidated: true
+          });
           return;
         }
 
@@ -213,14 +236,26 @@
             (response) => {
               if (chrome.runtime.lastError) {
                 const msg = chrome.runtime.lastError.message || 'Background worker error';
-                reject(new Error(msg));
+                const isInvalidated =
+                  msg.toLowerCase().includes('invalidat') || msg.toLowerCase().includes('closed');
+                resolve({
+                  success: false,
+                  error: msg,
+                  contextInvalidated: isInvalidated
+                });
               } else {
-                resolve(response);
+                resolve(response || { success: false, error: 'Empty response from background worker' });
               }
             }
           );
         } catch (err) {
-          reject(new Error(err.message || 'Failed to dispatch message to background worker'));
+          const msg = err?.message || 'Failed to dispatch message';
+          const isInvalidated = msg.toLowerCase().includes('invalidat');
+          resolve({
+            success: false,
+            error: msg,
+            contextInvalidated: isInvalidated
+          });
         }
       });
     }

@@ -38,6 +38,7 @@
       this.mutationObserver = null;
       this.debounceTimer = null;
       this.processedCount = 0;
+      this.isTornDown = false;
     }
 
     /**
@@ -66,8 +67,9 @@
      * Verifies that the Chrome extension context is still alive.
      */
     isContextValid() {
+      if (this.isTornDown) return false;
       try {
-        if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+        if (typeof chrome === 'undefined' || !chrome || !chrome.runtime || !chrome.runtime.id) {
           return false;
         }
         if (typeof chrome.runtime.getManifest === 'function') {
@@ -82,16 +84,33 @@
     /**
      * Tears down observers silently if the extension was reloaded in chrome://extensions.
      */
+    teardownObservers() {
+      if (this.isTornDown) return;
+      this.isTornDown = true;
+      if (this.mutationObserver) {
+        try {
+          this.mutationObserver.disconnect();
+        } catch (_) {}
+        this.mutationObserver = null;
+      }
+      if (this.intersectionObserver) {
+        try {
+          this.intersectionObserver.disconnect();
+        } catch (_) {}
+        this.intersectionObserver = null;
+      }
+      if (this.debounceTimer) {
+        clearTimeout(this.debounceTimer);
+        this.debounceTimer = null;
+      }
+      console.info(
+        `${PREFIX} [Lifecycle] Extension reloaded or context disconnected. Observers gracefully unmounted until page refresh.`
+      );
+    }
+
     checkContextOrTeardown() {
       if (!this.isContextValid()) {
-        if (this.mutationObserver) {
-          this.mutationObserver.disconnect();
-          this.mutationObserver = null;
-        }
-        if (this.intersectionObserver) {
-          this.intersectionObserver.disconnect();
-          this.intersectionObserver = null;
-        }
+        this.teardownObservers();
         return false;
       }
       return true;
@@ -122,6 +141,7 @@
       };
 
       this.intersectionObserver = new IntersectionObserver((entries, observer) => {
+        if (!this.checkContextOrTeardown()) return;
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const postElement = entry.target;
@@ -146,6 +166,7 @@
      */
     initMutationObserver() {
       this.mutationObserver = new MutationObserver((mutations) => {
+        if (!this.checkContextOrTeardown()) return;
         let shouldScan = false;
 
         for (const m of mutations) {
@@ -237,6 +258,17 @@
 
         const [imageAudit, textAudit] = await Promise.all([imageAuditPromise, textAuditPromise]);
 
+        // If either audit detected an invalidated extension context, shut down observers immediately
+        if (
+          imageAudit?.contextInvalidated ||
+          textAudit?.contextInvalidated ||
+          (imageAudit?.details && imageAudit.details.includes('invalidated')) ||
+          (textAudit?.details && textAudit.details.includes('invalidated'))
+        ) {
+          this.teardownObservers();
+          return;
+        }
+
         // 5. Evaluate EU AI Act Article 50 compliance (FR-03) and bind to Web Component (FR-04)
         if (Compliance && badgeElement) {
           const complianceVerdict = Compliance.evaluateCompliance(imageAudit, textAudit, hasNativeLabel);
@@ -257,9 +289,11 @@
           }
         }
       } catch (err) {
-        const isInvalidated = err.message && err.message.includes('Extension context invalidated');
+        const errorMsg = String(err?.message || err || '');
+        const isInvalidated =
+          errorMsg.toLowerCase().includes('invalidat') || errorMsg.toLowerCase().includes('closed');
         if (isInvalidated) {
-          this.checkContextOrTeardown();
+          this.teardownObservers();
           return;
         }
         console.error(`${PREFIX} [Error] Multimodal audit failed for Post #${id}:`, err);

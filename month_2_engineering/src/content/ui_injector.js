@@ -132,6 +132,9 @@
           badgeEl.setAttribute('state', 'SCANNING');
           badgeEl.setAttribute('role', 'region');
           badgeEl.setAttribute('aria-label', 'EU AI Act Article 50 Transparency Indicator');
+          badgeEl.style.marginLeft = '8px';
+          badgeEl.style.display = 'inline-flex';
+          badgeEl.style.verticalAlign = 'middle';
 
           if (anchorElement.firstChild) {
             anchorElement.insertBefore(badgeEl, anchorElement.firstChild);
@@ -159,7 +162,8 @@
         host.setAttribute('role', 'region');
         host.setAttribute('aria-label', 'EU AI Act Article 50 Transparency Indicator');
         host.style.all = 'initial';
-        host.style.display = 'inline-block';
+        host.style.display = 'inline-flex';
+        host.style.marginLeft = '8px';
         host.style.margin = '4px 8px';
         host.style.verticalAlign = 'middle';
         host.style.zIndex = '9999';
@@ -268,117 +272,298 @@
 
       const button = badgeWrapper.querySelector('.ai-badge-pill');
       if (button) {
-        button.onclick = (e) => {
+        button.addEventListener('pointerdown', (e) => e.stopPropagation());
+        button.addEventListener('mousedown', (e) => e.stopPropagation());
+        button.addEventListener('click', (e) => {
           e.stopPropagation();
           e.preventDefault();
-          this.toggleComplianceDrawer(shadowRoot, compliance);
-        };
+          this.toggleComplianceDrawer(shadowRoot, compliance, button);
+        });
       }
+    }
+
+    /**
+     * Calculates clamped viewport coordinates (top, left) ensuring the drawer
+     * renders cleanly beside/below its trigger button without overflowing the viewport.
+     */
+    static computePosition(triggerRect, drawerDims = { width: 348, height: 380 }, viewport = null, margin = 8) {
+      const vp = viewport || {
+        width: typeof window !== 'undefined' && window.innerWidth ? window.innerWidth : 1024,
+        height: typeof window !== 'undefined' && window.innerHeight ? window.innerHeight : 768
+      };
+
+      const dWidth = Math.min(drawerDims.width || 348, Math.max(200, vp.width - margin * 2));
+      const dHeight = drawerDims.height || 380;
+
+      let left = triggerRect.left;
+      if (left + dWidth > vp.width - margin) {
+        left = vp.width - dWidth - margin;
+      }
+      if (left < margin) {
+        left = margin;
+      }
+
+      let top = triggerRect.bottom + 6;
+      const overflowsBottom = top + dHeight > vp.height - margin;
+      const fitsAbove = triggerRect.top - dHeight - 6 >= margin;
+
+      if (overflowsBottom && fitsAbove) {
+        top = triggerRect.top - dHeight - 6;
+      } else if (overflowsBottom) {
+        top = Math.max(margin, vp.height - dHeight - margin);
+      }
+
+      const isOffscreen = triggerRect.bottom < 0 || triggerRect.top > vp.height;
+
+      return {
+        top: Math.round(top),
+        left: Math.round(left),
+        isOffscreen
+      };
+    }
+
+    /**
+     * Inspects event composed path to safely identify if an event originated
+     * within target element (even across Shadow DOM boundaries).
+     */
+    static isEventInside(e, targetElement) {
+      if (!e || !targetElement) return false;
+      const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
+      if (path.length > 0) {
+        return path.includes(targetElement);
+      }
+      if (typeof targetElement.contains === 'function' && e.target) {
+        return targetElement.contains(e.target);
+      }
+      return false;
     }
 
     /**
      * Toggles the interactive compliance drawer showing technical signals and Article 50 verdicts.
      */
-    static toggleComplianceDrawer(shadowRoot, compliance) {
+    static toggleComplianceDrawer(shadowRoot, compliance, triggerBtn) {
       let drawer = shadowRoot.querySelector('.ai-audit-drawer');
       if (drawer) {
-        drawer.classList.toggle('active');
-        return;
+        const isCurrentlyOpen =
+          drawer.classList.contains('active') ||
+          (typeof drawer.matches === 'function' && drawer.matches(':popover-open'));
+        if (isCurrentlyOpen) {
+          if (typeof drawer.hidePopover === 'function') {
+            try {
+              if (drawer.matches(':popover-open')) {
+                drawer.hidePopover();
+              }
+            } catch (_) {}
+          }
+          drawer.classList.remove('active');
+          if (drawer._cleanup) drawer._cleanup();
+          return;
+        }
+      } else {
+        const img = compliance?.signals?.image || {};
+        const txt = compliance?.signals?.text || {};
+        const articles = compliance?.articles || {};
+
+        const c2paDisplay = img.c2paStatus || 'NONE';
+        const tokenDisplay = typeof txt.tokenCount === 'number' ? `${txt.tokenCount} est. tokens` : '0';
+        const entropyGateDisplay =
+          txt.status === 'LOW_ENTROPY'
+            ? `GATED (Low Entropy: H2=${txt.entropy ?? 0})`
+            : txt.status === 'INSUFFICIENT_LENGTH'
+              ? `GATED (Short: ${txt.tokenCount ?? 0} < 50 tokens)`
+              : txt.status === 'NO_TEXT'
+                ? 'N/A (No text)'
+                : `PASSED (H2=${txt.entropy ?? 0} bits)`;
+        const zDisplay =
+          typeof txt.zScore === 'number'
+            ? `z = ${txt.zScore.toFixed(3)} (p = ${txt.pValue ?? 'n/a'})`
+            : 'Not evaluated';
+
+        const art50_2 = articles.article50_2 || { status: 'UNKNOWN', rationale: 'Pending evaluation.' };
+        const art50_4 = articles.article50_4 || { status: 'UNKNOWN', rationale: 'Pending evaluation.' };
+        const art50_5 = articles.article50_5 || { status: 'COMPLIANT', rationale: 'Active Shadow DOM overlay.' };
+
+        const getPillClass = (status) => {
+          if (status === 'COMPLIANT') return 'verdict-compliant';
+          if (status === 'NON_COMPLIANT') return 'verdict-noncompliant';
+          return 'verdict-unknown';
+        };
+
+        drawer = document.createElement('div');
+        drawer.className = 'ai-audit-drawer';
+        drawer.setAttribute('popover', 'auto');
+        drawer.innerHTML = `
+          <div class="drawer-header">
+            <span class="drawer-title">EU AI Act Article 50 Audit</span>
+            <button class="drawer-close" type="button" aria-label="Close panel">&times;</button>
+          </div>
+          <div class="drawer-body">
+            <div class="drawer-section-title">Technical Provenance Signals</div>
+            <div class="audit-row">
+              <span class="row-tag">C2PA Manifest:</span>
+              <span class="row-info">${this.escapeHtml(c2paDisplay)}${img.claimGenerator ? ` (${this.escapeHtml(img.claimGenerator)})` : ''}</span>
+            </div>
+            <div class="audit-row">
+              <span class="row-tag">Platform Label:</span>
+              <span class="row-info">${compliance?.platformLabelPresent ? 'Detected ("Made with AI")' : 'None detected'}</span>
+            </div>
+            <div class="audit-row">
+              <span class="row-tag">Token Count:</span>
+              <span class="row-info">${this.escapeHtml(tokenDisplay)}</span>
+            </div>
+            <div class="audit-row">
+              <span class="row-tag">Entropy Gate:</span>
+              <span class="row-info">${this.escapeHtml(entropyGateDisplay)}</span>
+            </div>
+            <div class="audit-row">
+              <span class="row-tag">SynthID z-Score:</span>
+              <span class="row-info">${this.escapeHtml(zDisplay)}</span>
+            </div>
+
+            <div class="drawer-section-title" style="margin-top: 10px;">Legal Compliance Verdicts</div>
+            <div class="verdict-block">
+              <div class="verdict-header">
+                <span class="verdict-title">Art. 50(2) · Provider Marking</span>
+                <span class="verdict-badge ${getPillClass(art50_2.status)}">${this.escapeHtml(art50_2.status)}</span>
+              </div>
+              <div class="verdict-rationale">${this.escapeHtml(art50_2.rationale)}</div>
+            </div>
+            <div class="verdict-block">
+              <div class="verdict-header">
+                <span class="verdict-title">Art. 50(4) · Deployer Disclosure</span>
+                <span class="verdict-badge ${getPillClass(art50_4.status)}">${this.escapeHtml(art50_4.status)}</span>
+              </div>
+              <div class="verdict-rationale">${this.escapeHtml(art50_4.rationale)}</div>
+            </div>
+            <div class="verdict-block">
+              <div class="verdict-header">
+                <span class="verdict-title">Art. 50(5) · User Visibility</span>
+                <span class="verdict-badge ${getPillClass(art50_5.status)}">${this.escapeHtml(art50_5.status)}</span>
+              </div>
+              <div class="verdict-rationale">${this.escapeHtml(art50_5.rationale)}</div>
+            </div>
+          </div>
+          <div class="drawer-footer">
+            THWS Master's Thesis Prototype · Client-Side Provenance Validator
+          </div>
+        `;
+
+        drawer.addEventListener('pointerdown', (e) => e.stopPropagation());
+        drawer.addEventListener('mousedown', (e) => e.stopPropagation());
+        drawer.addEventListener('click', (e) => e.stopPropagation());
+
+        const closeBtn = drawer.querySelector('.drawer-close');
+        if (closeBtn) {
+          closeBtn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (typeof drawer.hidePopover === 'function') {
+              try {
+                if (drawer.matches(':popover-open')) {
+                  drawer.hidePopover();
+                }
+              } catch (_) {}
+            }
+            drawer.classList.remove('active');
+            if (drawer._cleanup) drawer._cleanup();
+          };
+        }
+
+        shadowRoot.appendChild(drawer);
       }
 
-      const img = compliance?.signals?.image || {};
-      const txt = compliance?.signals?.text || {};
-      const articles = compliance?.articles || {};
+      drawer.classList.add('active');
 
-      const c2paDisplay = img.c2paStatus || 'NONE';
-      const tokenDisplay = typeof txt.tokenCount === 'number' ? `${txt.tokenCount} est. tokens` : '0';
-      const entropyGateDisplay =
-        txt.status === 'LOW_ENTROPY'
-          ? `GATED (Low Entropy: H2=${txt.entropy ?? 0})`
-          : txt.status === 'INSUFFICIENT_LENGTH'
-            ? `GATED (Short: ${txt.tokenCount ?? 0} < 50 tokens)`
-            : txt.status === 'NO_TEXT'
-              ? 'N/A (No text)'
-              : `PASSED (H2=${txt.entropy ?? 0} bits)`;
-      const zDisplay =
-        typeof txt.zScore === 'number'
-          ? `z = ${txt.zScore.toFixed(3)} (p = ${txt.pValue ?? 'n/a'})`
-          : 'Not evaluated';
+      const updatePosition = () => {
+        if (!triggerBtn || typeof triggerBtn.getBoundingClientRect !== 'function') return;
+        const rect = triggerBtn.getBoundingClientRect();
+        const coords = UIInjector.computePosition(rect, { width: 348, height: 400 });
+        if (coords.isOffscreen) {
+          if (typeof drawer.hidePopover === 'function') {
+            try {
+              if (drawer.matches(':popover-open')) {
+                drawer.hidePopover();
+              }
+            } catch (_) {}
+          }
+          drawer.classList.remove('active');
+          if (drawer._cleanup) drawer._cleanup();
+          return;
+        }
 
-      const art50_2 = articles.article50_2 || { status: 'UNKNOWN', rationale: 'Pending evaluation.' };
-      const art50_4 = articles.article50_4 || { status: 'UNKNOWN', rationale: 'Pending evaluation.' };
-      const art50_5 = articles.article50_5 || { status: 'COMPLIANT', rationale: 'Active Shadow DOM overlay.' };
-
-      const getPillClass = (status) => {
-        if (status === 'COMPLIANT') return 'verdict-compliant';
-        if (status === 'NON_COMPLIANT') return 'verdict-noncompliant';
-        return 'verdict-unknown';
+        drawer.style.position = 'fixed';
+        drawer.style.top = `${coords.top}px`;
+        drawer.style.left = `${coords.left}px`;
+        drawer.style.margin = '0';
+        drawer.style.inset = 'auto';
       };
 
-      drawer = document.createElement('div');
-      drawer.className = 'ai-audit-drawer active';
-      drawer.innerHTML = `
-        <div class="drawer-header">
-          <span class="drawer-title">EU AI Act Article 50 Audit</span>
-          <button class="drawer-close" type="button" aria-label="Close panel">&times;</button>
-        </div>
-        <div class="drawer-body">
-          <div class="drawer-section-title">Technical Provenance Signals</div>
-          <div class="audit-row">
-            <span class="row-tag">C2PA Manifest:</span>
-            <span class="row-info">${this.escapeHtml(c2paDisplay)}${img.claimGenerator ? ` (${this.escapeHtml(img.claimGenerator)})` : ''}</span>
-          </div>
-          <div class="audit-row">
-            <span class="row-tag">Platform Label:</span>
-            <span class="row-info">${compliance?.platformLabelPresent ? 'Detected ("Made with AI")' : 'None detected'}</span>
-          </div>
-          <div class="audit-row">
-            <span class="row-tag">Token Count:</span>
-            <span class="row-info">${this.escapeHtml(tokenDisplay)}</span>
-          </div>
-          <div class="audit-row">
-            <span class="row-tag">Entropy Gate:</span>
-            <span class="row-info">${this.escapeHtml(entropyGateDisplay)}</span>
-          </div>
-          <div class="audit-row">
-            <span class="row-tag">SynthID z-Score:</span>
-            <span class="row-info">${this.escapeHtml(zDisplay)}</span>
-          </div>
+      updatePosition();
 
-          <div class="drawer-section-title" style="margin-top: 10px;">Legal Compliance Verdicts</div>
-          <div class="verdict-block">
-            <div class="verdict-header">
-              <span class="verdict-title">Art. 50(2) · Provider Marking</span>
-              <span class="verdict-badge ${getPillClass(art50_2.status)}">${this.escapeHtml(art50_2.status)}</span>
-            </div>
-            <div class="verdict-rationale">${this.escapeHtml(art50_2.rationale)}</div>
-          </div>
-          <div class="verdict-block">
-            <div class="verdict-header">
-              <span class="verdict-title">Art. 50(4) · Deployer Disclosure</span>
-              <span class="verdict-badge ${getPillClass(art50_4.status)}">${this.escapeHtml(art50_4.status)}</span>
-            </div>
-            <div class="verdict-rationale">${this.escapeHtml(art50_4.rationale)}</div>
-          </div>
-          <div class="verdict-block">
-            <div class="verdict-header">
-              <span class="verdict-title">Art. 50(5) · User Visibility</span>
-              <span class="verdict-badge ${getPillClass(art50_5.status)}">${this.escapeHtml(art50_5.status)}</span>
-            </div>
-            <div class="verdict-rationale">${this.escapeHtml(art50_5.rationale)}</div>
-          </div>
-        </div>
-        <div class="drawer-footer">
-          THWS Master's Thesis Prototype · Client-Side Provenance Validator
-        </div>
-      `;
+      if (typeof drawer.showPopover === 'function') {
+        try {
+          if (typeof drawer.matches !== 'function' || !drawer.matches(':popover-open')) {
+            drawer.showPopover();
+          }
+        } catch (_) {}
+      }
 
-      drawer.querySelector('.drawer-close').onclick = (e) => {
-        e.stopPropagation();
-        drawer.classList.remove('active');
+      let rafId = null;
+      const onScrollOrResize = () => {
+        if (rafId) return;
+        rafId = typeof requestAnimationFrame === 'function'
+          ? requestAnimationFrame(() => {
+              rafId = null;
+              updatePosition();
+            })
+          : null;
       };
 
-      shadowRoot.appendChild(drawer);
+      if (typeof window !== 'undefined') {
+        window.addEventListener('scroll', onScrollOrResize, { passive: true, capture: true });
+        window.addEventListener('resize', onScrollOrResize, { passive: true });
+      }
+
+      const onDocClick = (e) => {
+        const isInside =
+          UIInjector.isEventInside(e, drawer) ||
+          (triggerBtn && UIInjector.isEventInside(e, triggerBtn));
+        if (!isInside) {
+          if (typeof drawer.hidePopover === 'function') {
+            try {
+              if (drawer.matches(':popover-open')) {
+                drawer.hidePopover();
+              }
+            } catch (_) {}
+          }
+          drawer.classList.remove('active');
+          if (drawer._cleanup) drawer._cleanup();
+        }
+      };
+
+      if (typeof document !== 'undefined') {
+        document.addEventListener('pointerdown', onDocClick, true);
+      }
+
+      drawer._cleanup = () => {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('scroll', onScrollOrResize, { capture: true });
+          window.removeEventListener('resize', onScrollOrResize);
+        }
+        if (typeof document !== 'undefined') {
+          document.removeEventListener('pointerdown', onDocClick, true);
+        }
+        drawer._cleanup = null;
+      };
+
+      if (typeof drawer.addEventListener === 'function') {
+        drawer.addEventListener('toggle', (e) => {
+          if (e.newState === 'closed') {
+            drawer.classList.remove('active');
+            if (drawer._cleanup) drawer._cleanup();
+          }
+        }, { once: true });
+      }
     }
 
     /**
@@ -410,7 +595,8 @@
 
         // Style the host container itself to avoid breaking parent layout
         host.style.all = 'initial';
-        host.style.display = 'inline-block';
+        host.style.display = 'inline-flex';
+        host.style.marginLeft = '8px';
         host.style.margin = '4px 8px';
         host.style.verticalAlign = 'middle';
         host.style.zIndex = '9999';
@@ -565,13 +751,16 @@
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
           font-size: 12px;
           line-height: 1.2;
-          display: inline-block;
+          display: inline-flex;
+          vertical-align: middle;
+          margin-left: 8px;
           position: relative;
         }
 
         .ai-badge-wrapper {
           display: inline-flex;
           align-items: center;
+          vertical-align: middle;
         }
 
         .ai-badge-pill {
@@ -602,25 +791,33 @@
           white-space: nowrap;
         }
 
-        /* Audit Drawer Window */
+        /* Audit Drawer Window (Popover API & Top Layer) */
         .ai-audit-drawer {
-          display: none;
-          position: absolute;
-          top: calc(100% + 8px);
-          left: 0;
-          width: 300px;
+          position: fixed;
+          inset: auto;
+          margin: 0;
+          width: 348px;
+          max-width: calc(100vw - 20px);
+          max-height: calc(100vh - 20px);
+          overflow-y: auto;
+          overflow-x: hidden;
           background: #111827;
           border: 1px solid #374151;
-          border-radius: 8px;
-          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-          z-index: 999999;
+          border-radius: 10px;
+          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+          z-index: 2147483647;
           padding: 12px;
           color: #f9fafb;
           box-sizing: border-box;
         }
 
-        .ai-audit-drawer.active {
-          display: block;
+        .ai-audit-drawer:not(.active):not(:popover-open) {
+          display: none !important;
+        }
+
+        .ai-audit-drawer.active,
+        .ai-audit-drawer:popover-open {
+          display: block !important;
           animation: badgeFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
         }
 

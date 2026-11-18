@@ -148,10 +148,11 @@
         <style>
           :host {
             all: initial;
-            display: inline-block;
-            position: relative;
+            display: inline-flex;
             vertical-align: middle;
+            position: relative;
             margin: 4px 8px;
+            margin-left: 8px;
             z-index: 9999;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
           }
@@ -202,12 +203,22 @@
       }
 
       if (btn && drawer) {
-        btn.onclick = (e) => {
+        drawer._onStateChange = (isOpen) => {
+          btn.setAttribute('aria-expanded', String(isOpen));
+        };
+
+        const stopPropagation = (e) => {
+          e.stopPropagation();
+        };
+
+        btn.addEventListener('pointerdown', stopPropagation);
+        btn.addEventListener('mousedown', stopPropagation);
+        btn.addEventListener('click', (e) => {
           e.stopPropagation();
           e.preventDefault();
-          drawer.toggle();
+          drawer.toggle(btn);
           btn.setAttribute('aria-expanded', String(drawer.open));
-        };
+        });
       }
     }
   }

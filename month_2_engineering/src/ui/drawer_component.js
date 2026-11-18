@@ -47,10 +47,83 @@
   }
 
   class AiAuditDrawer extends BaseHTMLElement {
+    /**
+     * Calculates clamped viewport coordinates (top, left) ensuring the drawer
+     * renders cleanly beside/below its trigger button without overflowing the viewport.
+     *
+     * @param {{ top: number, bottom: number, left: number, right: number }} triggerRect
+     * @param {{ width?: number, height?: number }} [drawerDims]
+     * @param {{ width: number, height: number }} [viewport]
+     * @param {number} [margin=8]
+     * @returns {{ top: number, left: number, isOffscreen: boolean }}
+     */
+    static computePosition(triggerRect, drawerDims = { width: 348, height: 380 }, viewport = null, margin = 8) {
+      const vp = viewport || {
+        width: typeof window !== 'undefined' && window.innerWidth ? window.innerWidth : 1024,
+        height: typeof window !== 'undefined' && window.innerHeight ? window.innerHeight : 768
+      };
+
+      const dWidth = Math.min(drawerDims.width || 348, Math.max(200, vp.width - margin * 2));
+      const dHeight = drawerDims.height || 380;
+
+      // Horizontal coordinate: align to trigger left, clamp within viewport edges
+      let left = triggerRect.left;
+      if (left + dWidth > vp.width - margin) {
+        left = vp.width - dWidth - margin;
+      }
+      if (left < margin) {
+        left = margin;
+      }
+
+      // Vertical coordinate: prefer below trigger; flip above if overflowing bottom and space exists
+      let top = triggerRect.bottom + 6;
+      const overflowsBottom = top + dHeight > vp.height - margin;
+      const fitsAbove = triggerRect.top - dHeight - 6 >= margin;
+
+      if (overflowsBottom && fitsAbove) {
+        top = triggerRect.top - dHeight - 6;
+      } else if (overflowsBottom) {
+        top = Math.max(margin, vp.height - dHeight - margin);
+      }
+
+      // Check if trigger has scrolled completely out of the viewport
+      const isOffscreen = triggerRect.bottom < 0 || triggerRect.top > vp.height;
+
+      return {
+        top: Math.round(top),
+        left: Math.round(left),
+        isOffscreen
+      };
+    }
+
+    /**
+     * Inspects event composed path to safely identify if an event originated
+     * within target element (even across Shadow DOM boundaries).
+     *
+     * @param {Event} e
+     * @param {Element} targetElement
+     * @returns {boolean}
+     */
+    static isEventInside(e, targetElement) {
+      if (!e || !targetElement) return false;
+      const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
+      if (path.length > 0) {
+        return path.includes(targetElement);
+      }
+      if (typeof targetElement.contains === 'function' && e.target) {
+        return targetElement.contains(e.target);
+      }
+      return false;
+    }
+
     constructor() {
       super();
       this._compliance = null;
       this._isOpen = false;
+      this._triggerEl = null;
+      this._onStateChange = null;
+      this._onScrollOrResize = null;
+      this._onDocumentClick = null;
       this._shadow = typeof this.attachShadow === 'function' ? this.attachShadow({ mode: 'open' }) : null;
       this._onKeyDown = (e) => {
         if (e.key === 'Escape' && this._isOpen) {
@@ -60,9 +133,32 @@
     }
 
     connectedCallback() {
+      if (typeof this.setAttribute === 'function') {
+        this.setAttribute('popover', 'auto');
+      }
       this.render();
+
       if (typeof document !== 'undefined') {
         document.addEventListener('keydown', this._onKeyDown);
+      }
+
+      if (typeof this.addEventListener === 'function') {
+        this._onPopoverToggle = (e) => {
+          if (e.newState === 'closed') {
+            this._isOpen = false;
+            this._cleanupListeners();
+            if (typeof this.removeAttribute === 'function') {
+              this.removeAttribute('open');
+            }
+            this.render();
+            if (this._onStateChange) this._onStateChange(false);
+          } else if (e.newState === 'open') {
+            this._isOpen = true;
+            this._attachListeners();
+            if (this._onStateChange) this._onStateChange(true);
+          }
+        };
+        this.addEventListener('toggle', this._onPopoverToggle);
       }
     }
 
@@ -70,6 +166,7 @@
       if (typeof document !== 'undefined') {
         document.removeEventListener('keydown', this._onKeyDown);
       }
+      this._cleanupListeners();
     }
 
     set complianceData(value) {
@@ -82,34 +179,156 @@
     }
 
     set open(val) {
-      this._isOpen = Boolean(val);
-      if (typeof this.setAttribute === 'function') {
-        if (this._isOpen) {
-          this.setAttribute('open', '');
-        } else {
-          this.removeAttribute('open');
-        }
+      const bool = Boolean(val);
+      if (bool) {
+        this.show(this._triggerEl || this.parentElement);
+      } else {
+        this.close();
       }
-      this.render();
     }
 
     get open() {
       return this._isOpen;
     }
 
-    toggle() {
-      this.open = !this._isOpen;
+    show(triggerEl) {
+      this._isOpen = true;
+      if (triggerEl) {
+        this._triggerEl = triggerEl;
+      }
+      if (typeof this.setAttribute === 'function') {
+        this.setAttribute('open', '');
+      }
+      this.render();
+
+      if (typeof this.showPopover === 'function') {
+        try {
+          if (typeof this.matches !== 'function' || !this.matches(':popover-open')) {
+            this.showPopover();
+          }
+        } catch (_) {}
+      }
+
+      this.reposition();
+      this._attachListeners();
+
+      if (this._onStateChange) {
+        this._onStateChange(true);
+      }
     }
 
     close() {
-      this.open = false;
+      this._isOpen = false;
+      this._cleanupListeners();
+
+      if (typeof this.hidePopover === 'function') {
+        try {
+          if (typeof this.matches !== 'function' || this.matches(':popover-open')) {
+            this.hidePopover();
+          }
+        } catch (_) {}
+      }
+
+      if (typeof this.removeAttribute === 'function') {
+        this.removeAttribute('open');
+      }
+
+      this.render();
+
+      if (this._onStateChange) {
+        this._onStateChange(false);
+      }
+    }
+
+    toggle(triggerEl) {
+      if (this._isOpen) {
+        this.close();
+      } else {
+        this.show(triggerEl);
+      }
+    }
+
+    reposition() {
+      if (!this._isOpen || !this._triggerEl) return;
+      const triggerRect =
+        typeof this._triggerEl.getBoundingClientRect === 'function'
+          ? this._triggerEl.getBoundingClientRect()
+          : null;
+      if (!triggerRect) return;
+
+      const panel = this._shadow ? this._shadow.querySelector('.drawer-panel') : null;
+      const drawerDims = {
+        width: (panel && panel.offsetWidth) || this.offsetWidth || 348,
+        height: (panel && panel.offsetHeight) || this.offsetHeight || 380
+      };
+
+      const coords = AiAuditDrawer.computePosition(triggerRect, drawerDims);
+
+      if (coords.isOffscreen) {
+        this.close();
+        return;
+      }
+
+      this.style.position = 'fixed';
+      this.style.top = `${coords.top}px`;
+      this.style.left = `${coords.left}px`;
+      this.style.margin = '0px';
+      this.style.inset = 'auto';
+    }
+
+    _attachListeners() {
+      this._cleanupListeners();
+
+      let rafId = null;
+      this._onScrollOrResize = () => {
+        if (rafId) return;
+        rafId = typeof requestAnimationFrame === 'function'
+          ? requestAnimationFrame(() => {
+              rafId = null;
+              if (this._isOpen) {
+                this.reposition();
+              }
+            })
+          : null;
+      };
+
+      if (typeof window !== 'undefined') {
+        window.addEventListener('scroll', this._onScrollOrResize, { passive: true, capture: true });
+        window.addEventListener('resize', this._onScrollOrResize, { passive: true });
+      }
+
+      this._onDocumentClick = (e) => {
+        if (!this._isOpen) return;
+        const isInside =
+          AiAuditDrawer.isEventInside(e, this) ||
+          (this._triggerEl && AiAuditDrawer.isEventInside(e, this._triggerEl));
+        if (!isInside) {
+          this.close();
+        }
+      };
+
+      if (typeof document !== 'undefined') {
+        document.addEventListener('pointerdown', this._onDocumentClick, true);
+      }
+    }
+
+    _cleanupListeners() {
+      if (typeof window !== 'undefined' && this._onScrollOrResize) {
+        window.removeEventListener('scroll', this._onScrollOrResize, { capture: true });
+        window.removeEventListener('resize', this._onScrollOrResize);
+        this._onScrollOrResize = null;
+      }
+      if (typeof document !== 'undefined' && this._onDocumentClick) {
+        document.removeEventListener('pointerdown', this._onDocumentClick, true);
+        this._onDocumentClick = null;
+      }
     }
 
     render() {
       if (!this._shadow) return;
 
       if (!this._isOpen) {
-        this._shadow.innerHTML = `<style>:host { display: none; }</style>`;
+        this._shadow.innerHTML = `<style>:host { display: none !important; }</style>`;
         return;
       }
 
@@ -141,10 +360,13 @@
         <style>
           :host {
             all: initial;
-            display: block;
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
+            box-sizing: border-box;
+            position: fixed;
+            inset: auto;
+            margin: 0;
+            border: none;
+            padding: 0;
+            background: transparent;
             z-index: 2147483647;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             font-size: 12px;
@@ -152,15 +374,27 @@
             color: #f3f4f6;
           }
 
+          :host(:not([open]):not(:popover-open)) {
+            display: none !important;
+          }
+
+          :host([open]),
+          :host(:popover-open) {
+            display: block !important;
+          }
+
           .drawer-panel {
             width: 348px;
-            max-width: 90vw;
+            max-width: calc(100vw - 20px);
+            max-height: calc(100vh - 20px);
             background: #111827;
             border: 1px solid #374151;
             border-radius: 10px;
-            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
-            overflow: hidden;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            overflow-y: auto;
+            overflow-x: hidden;
             animation: slideFadeIn 0.16s ease-out;
+            box-sizing: border-box;
           }
 
           @keyframes slideFadeIn {
@@ -361,6 +595,13 @@
           </div>
         </div>
       `;
+
+      const panel = this._shadow.querySelector('.drawer-panel');
+      if (panel) {
+        panel.addEventListener('pointerdown', (e) => e.stopPropagation());
+        panel.addEventListener('mousedown', (e) => e.stopPropagation());
+        panel.addEventListener('click', (e) => e.stopPropagation());
+      }
 
       const closeBtn = this._shadow.querySelector('.drawer-close');
       if (closeBtn) {

@@ -2,30 +2,255 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Instagram Feed Mock</title>
+  <title>Instagram Feed Mock — EU AI Act Provenance Demonstration</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #fafafa; padding: 20px; }
-    main { max-width: 470px; margin: 0 auto; }
-    article { background: #fff; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; }
-    header { padding: 12px; font-weight: bold; }
-    ._aagv img { width: 100%; display: block; }
-    .caption { padding: 12px; font-size: 14px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #fafafa;
+      padding: 24px;
+      margin: 0;
+      color: #262626;
+    }
+    .demo-banner {
+      max-width: 470px;
+      margin: 0 auto 20px auto;
+      background: #ffffff;
+      border: 1px solid #dbdbdb;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .demo-banner h1 {
+      font-size: 16px;
+      margin: 0 0 6px 0;
+      color: #e1306c;
+    }
+    .demo-banner p {
+      font-size: 12px;
+      margin: 0;
+      color: #8e8e8e;
+      line-height: 1.4;
+    }
+    main {
+      max-width: 470px;
+      margin: 0 auto;
+    }
+    article {
+      background: #ffffff;
+      border: 1px solid #dbdbdb;
+      border-radius: 8px;
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    header {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .user-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatar-ring {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      padding: 2px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .avatar-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      color: #262626;
+    }
+    .username-container {
+      display: flex;
+      flex-direction: column;
+    }
+    .username {
+      font-size: 13px;
+      font-weight: 600;
+      color: #262626;
+      text-decoration: none;
+    }
+    .subhead-info {
+      font-size: 11px;
+      color: #8e8e8e;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ig-ai-tag {
+      background: #f0f2f5;
+      color: #262626;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      text-decoration: none;
+    }
+    ._aagv img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .post-actions {
+      padding: 10px 14px 4px 14px;
+      display: flex;
+      gap: 14px;
+      font-size: 20px;
+    }
+    .caption {
+      padding: 6px 14px 12px 14px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .caption-username {
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    .timestamp {
+      padding: 0 14px 12px 14px;
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #8e8e8e;
+      letter-spacing: 0.2px;
+    }
   </style>
 </head>
 <body>
+  <div class="demo-banner">
+    <h1>EU AI Act Article 50 Evaluation Testbed (Instagram Feed)</h1>
+    <p>Demonstrating all four transparency compliance pill states (🟢 Verified, 🟡 Platform Tagged, 🔴 Undisclosed AI, ⚪ No Signal) across Instagram feed elements.</p>
+  </div>
+
   <main>
+    <!-- Post A: 🟢 VERIFIED AI PROVENANCE (Watermarked SynthID Text + "AI info" sub-header) -->
     <article>
       <header>
-        <span>photographer_travel</span>
+        <div class="user-block">
+          <div class="avatar-ring">
+            <div class="avatar-inner">AI</div>
+          </div>
+          <div class="username-container">
+            <span class="username">european_ai_observatory</span>
+            <span class="subhead-info">Würzburg, Germany</span>
+          </div>
+        </div>
+        <span class="ig-ai-tag" aria-label="AI info">✨ AI info</span>
       </header>
       <div class="_aagv">
-        <img src="https://picsum.photos/470/470?1" alt="IG Sample" width="470" height="470">
+        <img src="https://picsum.photos/470/470?random=11" alt="Verified Demonstration" width="470" height="470">
+      </div>
+      <div class="post-actions">
+        <span>♡</span> <span>💬</span> <span>↗</span>
       </div>
       <div class="caption">
-        <span class="_a9zs">Sunset over the European Alps. Taken with standard DSLR aperture f/2.8. #nature #photography</span>
+        <span class="_a9zs">
+          <span class="caption-username">european_ai_observatory</span>Article 50 of the European Union AI Act mandates that providers of generative artificial intelligence systems ensure synthetic text, audio, image, and video outputs are marked in a machine-readable format and detectable as artificially generated across digital distribution channels. This long-form analysis was synthesized using an advanced large language model embedding verified SynthID-Text statistical watermarks, fully compliant with European Union transparency regulations.
+        </span>
       </div>
+      <div class="timestamp">2 hours ago</div>
+    </article>
+
+    <!-- Post B: 🟡 PLATFORM TAGGED (Platform Ingestion Trap: Stripped C2PA Image + "KI-Info" label) -->
+    <article>
+      <header>
+        <div class="user-block">
+          <div class="avatar-ring">
+            <div class="avatar-inner">KS</div>
+          </div>
+          <div class="username-container">
+            <span class="username">kreativ_studio_muc</span>
+            <span class="subhead-info">Munich, Bavaria</span>
+          </div>
+        </div>
+        <span class="ig-ai-tag" aria-label="KI-Info">KI-Info</span>
+      </header>
+      <div class="_aagv">
+        <img src="https://picsum.photos/470/470?random=12" alt="Platform Tagged Demonstration" width="470" height="470">
+      </div>
+      <div class="post-actions">
+        <span>♡</span> <span>💬</span> <span>↗</span>
+      </div>
+      <div class="caption">
+        <span class="_a9zs">
+          <span class="caption-username">kreativ_studio_muc</span>Ein virtueller Berggipfel bei Sonnenuntergang. Während die Plattform das Bild korrekt mit dem Meta KI-Info Label versehen hat, wurden die zugrunde liegenden kryptografischen C2PA JUMBF Metadaten bei der CDN-Komprimierung zerstört.
+        </span>
+      </div>
+      <div class="timestamp">4 hours ago</div>
+    </article>
+
+    <!-- Post C: 🔴 UNDISCLOSED AI (Watermarked Text >60 tokens, z > 3.0, but NO platform disclosure) -->
+    <article>
+      <header>
+        <div class="user-block">
+          <div class="avatar-ring">
+            <div class="avatar-inner">VT</div>
+          </div>
+          <div class="username-container">
+            <span class="username">viral_trend_insights</span>
+            <span class="subhead-info">Sponsored · Editorial</span>
+          </div>
+        </div>
+        <!-- Intentionally NO platform disclosure tag -->
+      </header>
+      <div class="_aagv">
+        <img src="https://picsum.photos/470/470?random=13" alt="Undisclosed AI Demonstration" width="470" height="470">
+      </div>
+      <div class="post-actions">
+        <span>♡</span> <span>💬</span> <span>↗</span>
+      </div>
+      <div class="caption">
+        <span class="_a9zs">
+          <span class="caption-username">viral_trend_insights</span>Recent breakthroughs in neural language generation and generative diffusion architectures allow autonomous systems to draft highly persuasive social media commentary indistinguishable from authentic human writing. Deployers distributing this synthetic prose failed to provide the mandatory Article 50(4) disclosure label on the hosting platform, violating European transparency obligations and misleading feed readers.
+        </span>
+      </div>
+      <div class="timestamp">6 hours ago</div>
+    </article>
+
+    <!-- Post D: ⚪ NO SIGNAL / MICRO-SPAN (Short human caption <50 tokens, authentic photo) -->
+    <article>
+      <header>
+        <div class="user-block">
+          <div class="avatar-ring">
+            <div class="avatar-inner">PT</div>
+          </div>
+          <div class="username-container">
+            <span class="username">photographer_travel</span>
+            <span class="subhead-info">Bavaria, Germany</span>
+          </div>
+        </div>
+      </header>
+      <div class="_aagv">
+        <img src="https://picsum.photos/470/470?random=14" alt="Authentic Human Post" width="470" height="470">
+      </div>
+      <div class="post-actions">
+        <span>♡</span> <span>💬</span> <span>↗</span>
+      </div>
+      <div class="caption">
+        <span class="_a9zs">
+          <span class="caption-username">photographer_travel</span>Sunset over the Main river in Würzburg. Taken with standard DSLR aperture f/2.8. #nature #photography #wuerzburg
+        </span>
+      </div>
+      <div class="timestamp">1 day ago</div>
     </article>
   </main>
 </body>
 </html>
-

@@ -53,7 +53,7 @@
     /^\d+([.,]\d+)?\s*[km]?$/i,
 
     // Platform native AI tags (already tracked separately via detectPlatformNativeLabel)
-    /^(?:🤖\s*)?(made with ai|mit ki erstellt|creado con ia|créé avec l[’']ia|ai info|ki-info)$/i,
+    /^(?:🤖\s*)?(made with ai|mit ki erstellt|creado con ia|créé avec l[’']ia|ai[\s\-_/:]*info|ki[\s\-_/:]*info)$/i,
 
     // Isolated @handles
     /^@[a-z0-9._-]{2,}$/i

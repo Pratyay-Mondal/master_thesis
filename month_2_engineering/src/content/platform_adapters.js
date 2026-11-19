@@ -261,20 +261,61 @@
     }
 
     /**
-     * Detects if the platform itself already rendered an AI label (e.g., "Made with AI").
+     * Detects if the platform itself already rendered an AI label (e.g., "AI info", "Made with AI", "KI-Info").
+     * Inspects post headers, sub-headers, spans, links, and ARIA/title attributes across locales.
+     *
      * @param {string} platform
      * @param {Element} postNode
      * @returns {boolean}
      */
     static detectPlatformNativeLabel(platform, postNode) {
-      const text = (postNode.innerText || '').toLowerCase();
-      const aria = Array.from(postNode.querySelectorAll('[aria-label]'))
-        .map((el) => el.getAttribute('aria-label').toLowerCase())
-        .join(' ');
-      const combined = `${text} ${aria}`;
+      if (!postNode) return false;
 
-      const keywords = ['made with ai', 'mit ki erstellt', 'creado con ia', 'créé avec l’ia', 'ai info', 'ki-info'];
-      return keywords.some((k) => combined.includes(k));
+      const text = `${postNode.innerText || ''} ${postNode.textContent || ''}`.toLowerCase();
+
+      let attrParts = [];
+      if (typeof postNode.getAttribute === 'function') {
+        const selfAria = postNode.getAttribute('aria-label');
+        if (selfAria) attrParts.push(selfAria);
+        const selfTitle = postNode.getAttribute('title');
+        if (selfTitle) attrParts.push(selfTitle);
+      }
+
+      if (typeof postNode.querySelectorAll === 'function') {
+        const attrElements = postNode.querySelectorAll('[aria-label], [title], [aria-description], a[href*="ai_info"], a[href*="ki_info"]');
+        for (const el of attrElements) {
+          if (el.getAttribute) {
+            const aLabel = el.getAttribute('aria-label');
+            if (aLabel) attrParts.push(aLabel);
+            const title = el.getAttribute('title');
+            if (title) attrParts.push(title);
+            const aDesc = el.getAttribute('aria-description');
+            if (aDesc) attrParts.push(aDesc);
+            const href = el.getAttribute('href');
+            if (href && (href.includes('ai_info') || href.includes('ki_info'))) {
+              attrParts.push('ai info');
+            }
+          }
+        }
+      }
+
+      const combined = `${text} ${attrParts.join(' ')}`.toLowerCase();
+
+      // Multilingual patterns with word boundaries matching Meta's label terminology updates:
+      // "AI info", "AI-Info", "Made with AI", German "KI-Info", "Mit KI erstellt", Spanish/French variants
+      const patterns = [
+        /\b(?:🤖\s*)?ai[\s\-_/:]*info\b/i,
+        /\b(?:🤖\s*)?ki[\s\-_/:]*info\b/i,
+        /\bmade\s+with\s+ai\b/i,
+        /\bmit\s+ki\s+erstellt\b/i,
+        /\bgeneriert\s+mit\s+ki\b/i,
+        /\b(?:info\s+(?:sobre\s+)?ia|creado\s+con\s+ia)\b/i,
+        /\b(?:info\s+ia|créé\s+avec\s+(?:l’|l')?ia)\b/i,
+        /\bai\s+generated\b/i,
+        /\bgenerated\s+with\s+ai\b/i
+      ];
+
+      return patterns.some((p) => p.test(combined));
     }
   }
 

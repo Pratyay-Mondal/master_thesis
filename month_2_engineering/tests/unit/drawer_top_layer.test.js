@@ -125,3 +125,4 @@ test('Event Isolation: Shadow DOM composedPath() & Click Dismissal', async (t) =
     assert.equal(DrawerComponent.isEventInside({ target: outsideNode }, parentNode), false);
   });
 });
+

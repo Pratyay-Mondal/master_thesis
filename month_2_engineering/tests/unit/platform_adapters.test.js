@@ -66,6 +66,24 @@ test('Platform Native Label Detection', async (t) => {
     assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.FACEBOOK, mockPost), true);
   });
 
+  await t.test('identifies modern Meta "AI info" label in post header link', () => {
+    const mockPost = {
+      innerText: 'European AI Observatory\n2h · AI info',
+      querySelectorAll: () => []
+    };
+    assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.FACEBOOK, mockPost), true);
+  });
+
+  await t.test('identifies localized German "KI-Info" in sub-header span', () => {
+    const mockPost = {
+      innerText: 'Kreativ Studio München',
+      querySelectorAll: () => [{
+        getAttribute: (attr) => (attr === 'aria-label' ? 'KI-Info' : null)
+      }]
+    };
+    assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.INSTAGRAM, mockPost), true);
+  });
+
   await t.test('identifies localized German "Mit KI erstellt" in aria-label', () => {
     const mockPost = {
       innerText: 'Guten Tag!',
@@ -76,9 +94,19 @@ test('Platform Native Label Detection', async (t) => {
     assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.FACEBOOK, mockPost), true);
   });
 
-  await t.test('returns false when no AI label is present', () => {
+  await t.test('identifies case-insensitive "AI INFO" in title or aria-description', () => {
     const mockPost = {
-      innerText: 'Just a normal day in Wurzburg.',
+      innerText: 'Photo from feed',
+      querySelectorAll: () => [{
+        getAttribute: (attr) => (attr === 'title' ? '🤖 AI INFO' : null)
+      }]
+    };
+    assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.FACEBOOK, mockPost), true);
+  });
+
+  await t.test('returns false when no AI label is present (safe against lookalikes like Hawaii info)', () => {
+    const mockPost = {
+      innerText: 'Just a normal day in Wurzburg. Looking for Hawaii info or sending email info.',
       querySelectorAll: () => []
     };
     assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.FACEBOOK, mockPost), false);

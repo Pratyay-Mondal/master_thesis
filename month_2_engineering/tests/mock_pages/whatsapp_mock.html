@@ -2,27 +2,161 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>WhatsApp Web Mock</title>
+  <title>WhatsApp Web Mock — EU AI Act Provenance Demonstration</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #efeae2; padding: 20px; }
-    .chat { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
-    .message-in { background: #fff; border-radius: 8px; padding: 8px 12px; align-self: flex-start; max-width: 65%; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); }
-    .message-out { background: #d9fdd3; border-radius: 8px; padding: 8px 12px; align-self: flex-end; max-width: 65%; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #e1dbd2;
+      padding: 24px;
+      margin: 0;
+      color: #111b21;
+    }
+    .demo-banner {
+      max-width: 580px;
+      margin: 0 auto 20px auto;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 14px 18px;
+      box-shadow: 0 1px 3px rgba(11, 20, 26, 0.12);
+    }
+    .demo-banner h1 {
+      font-size: 16px;
+      margin: 0 0 6px 0;
+      color: #00a884;
+    }
+    .demo-banner p {
+      font-size: 12px;
+      margin: 0;
+      color: #667781;
+      line-height: 1.45;
+    }
+    .chat-container {
+      max-width: 580px;
+      margin: 0 auto;
+      background: #efeae2;
+      border-radius: 10px;
+      padding: 18px 16px;
+      box-shadow: 0 2px 4px rgba(11, 20, 26, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    [role="row"] {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    .message-in {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 8px 12px 6px 12px;
+      align-self: flex-start;
+      max-width: 78%;
+      box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+      position: relative;
+    }
+    .message-out {
+      background: #d9fdd3;
+      border-radius: 8px;
+      padding: 8px 12px 6px 12px;
+      align-self: flex-end;
+      max-width: 78%;
+      box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+      position: relative;
+    }
+    .forwarded-tag {
+      font-size: 11px;
+      font-style: italic;
+      color: #667781;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .ai-disclosure-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #e7f8f3;
+      color: #007a5e;
+      border: 1px solid #a3e6d5;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      text-decoration: none;
+    }
+    .selectable-text {
+      font-size: 13.5px;
+      line-height: 1.45;
+      color: #111b21;
+      word-wrap: break-word;
+    }
+    .meta-time {
+      font-size: 10px;
+      color: #667781;
+      float: right;
+      margin-left: 8px;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .checkmarks {
+      color: #53bdeb;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <div class="chat">
+  <div class="demo-banner">
+    <h1>EU AI Act Article 50 Evaluation Testbed (WhatsApp Web)</h1>
+    <p>Demonstrating client-side provenance verification inside end-to-end encrypted (E2EE) messaging channels without leaking metadata, displaying single canonical badges per message bubble.</p>
+  </div>
+
+  <div class="chat-container" role="application">
+    <!-- Message A: 🟢 VERIFIED AI PROVENANCE (Forwarded AI summary >60 tokens with AI disclosure tag) -->
     <div role="row">
-      <div class="message-in" data-id="true">
-        <span class="selectable-text copyable-text">Here is the research summary for our thesis progress meeting on Friday.</span>
+      <div class="message-in" data-id="msg_A">
+        <div class="forwarded-tag">
+          <span>↗ Forwarded</span>
+        </div>
+        <div class="ai-disclosure-badge" aria-label="AI info">
+          <span>🤖 AI info: Synthesized via AI</span>
+        </div>
+        <span class="selectable-text copyable-text">Article 50 of the European Union AI Act explicitly mandates detectable machine-readable provenance signals whenever generative artificial intelligence and large language models synthesize public commentary across distributed channels. This research briefing was synthesized using an advanced neural language generation model embedding verified SynthID-Text watermarks, and is transparently disclosed to all chat participants.</span>
+        <div class="meta-time">14:32</div>
       </div>
     </div>
+
+    <!-- Message B: 🔴 UNDISCLOSED AI (Forwarded long AI paragraph >60 tokens, z > 3.0, but NO disclosure) -->
     <div role="row">
-      <div class="message-out" data-id="true">
+      <div class="message-in" data-id="msg_B">
+        <div class="forwarded-tag">
+          <span>↗ Forwarded</span>
+        </div>
+        <!-- Intentionally NO platform disclosure label -->
+        <span class="selectable-text copyable-text">Recent investigations into generative diffusion architectures and neural language generation demonstrate how synthetic political commentary can circulate rapidly through encrypted peer-to-peer messaging networks. Deployers sharing this automated text omitted the mandatory Article 50(4) disclosure, making it impossible for ordinary recipients to detect algorithmic generation without client-side provenance verification.</span>
+        <div class="meta-time">14:35</div>
+      </div>
+    </div>
+
+    <!-- Message C: ⚪ NO SIGNAL / MICRO-SPAN (Short human incoming message <50 tokens) -->
+    <div role="row">
+      <div class="message-in" data-id="msg_C">
+        <span class="selectable-text copyable-text">Here is the research summary for our thesis progress meeting on Friday.</span>
+        <div class="meta-time">14:38</div>
+      </div>
+    </div>
+
+    <!-- Message D: ⚪ NO SIGNAL / MICRO-SPAN (Short human outgoing message <50 tokens) -->
+    <div role="row">
+      <div class="message-out" data-id="msg_D">
         <span class="selectable-text copyable-text">Thanks! Did you verify if the C2PA credentials survived the image recompression?</span>
+        <div class="meta-time">14:40 <span class="checkmarks">✓✓</span></div>
       </div>
     </div>
   </div>
 </body>
 </html>
-

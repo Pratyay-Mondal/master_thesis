@@ -149,8 +149,26 @@
             // 1. Unobserve immediately to prevent duplicate runs
             observer.unobserve(postElement);
 
-            // 2. Mark element with permanent attribute
+            // Skip if this element, its ancestor, or any child was already inspected
+            if (
+              postElement.getAttribute('data-ai-transparency-inspected') === 'true' ||
+              (postElement.parentElement &&
+                typeof postElement.parentElement.closest === 'function' &&
+                postElement.parentElement.closest('[data-ai-transparency-inspected="true"]')) ||
+              (typeof postElement.querySelector === 'function' &&
+                postElement.querySelector('[data-ai-transparency-inspected="true"]'))
+            ) {
+              return;
+            }
+
+            // 2. Mark element (and enclosing row for WhatsApp) with permanent attribute
             postElement.setAttribute('data-ai-transparency-inspected', 'true');
+            if (typeof postElement.closest === 'function') {
+              const enclosingRow = postElement.closest('[role="row"]');
+              if (enclosingRow) {
+                enclosingRow.setAttribute('data-ai-transparency-inspected', 'true');
+              }
+            }
 
             // 3. Process and inject badge
             this.handleVisiblePost(postElement);
@@ -235,6 +253,14 @@
       const anchor = Adapters.getAnchorElement(this.platform, postNode);
       if (!anchor) {
         console.warn(`${PREFIX} [Process] Post #${id} has no valid anchor element. Skipping injection.`);
+        return;
+      }
+
+      // Guard against duplicate injection if anchor or postNode already contains a badge
+      if (
+        (typeof anchor.querySelector === 'function' && anchor.querySelector('.ai-transparency-badge-host')) ||
+        (typeof postNode.querySelector === 'function' && postNode.querySelector('.ai-transparency-badge-host'))
+      ) {
         return;
       }
 

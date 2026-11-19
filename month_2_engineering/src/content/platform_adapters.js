@@ -85,10 +85,12 @@
 
         case PLATFORMS.WHATSAPP:
           return [
-            // Messages are rendered as role="row" in WhatsApp Web's virtual list
-            'div[role="application"] div[role="row"]',
+            // Canonical message bubble elements in WhatsApp Web
             'div[role="row"] div.message-in',
             'div[role="row"] div.message-out',
+            'div.message-in',
+            'div.message-out',
+            // Fallback for standalone virtualized rows that lack inner bubble wrappers
             'div[data-id][role="row"]',
             'div[role="row"]'
           ];
@@ -101,11 +103,18 @@
     /**
      * Finds all unprocessed post elements in the DOM.
      * Ensures we do not select nested elements or already processed nodes.
+     * Performs intra-batch deduplication so parent rows containing child message bubbles
+     * are dropped in favor of the canonical bubble element.
+     *
      * @param {string} platform
      * @param {Element|Document} rootNode
      * @returns {Element[]}
      */
-    static queryUninspectedPosts(platform, rootNode = document) {
+    static queryUninspectedPosts(platform, rootNode = (typeof document !== 'undefined' ? document : null)) {
+      if (!rootNode || typeof rootNode.querySelectorAll !== 'function') {
+        return [];
+      }
+
       const selectors = this.getPostSelectors(platform);
       const combined = selectors.join(', ');
       let candidates = [];
@@ -118,24 +127,54 @@
       }
 
       // If the rootNode itself matches the selector, include it
-      if (rootNode !== document && rootNode.matches && rootNode.matches(combined)) {
+      const hasDoc = typeof document !== 'undefined';
+      if ((!hasDoc || rootNode !== document) && rootNode.matches && rootNode.matches(combined)) {
         candidates.unshift(rootNode);
       }
 
-      return candidates.filter((el) => {
-        // Skip if already flagged
-        if (el.hasAttribute('data-ai-transparency-inspected')) return false;
+      // 1. Deduplicate references
+      candidates = Array.from(new Set(candidates));
 
-        // Skip if nested inside an already flagged parent post
-        if (el.parentElement && el.parentElement.closest('[data-ai-transparency-inspected="true"]')) {
+      // 2. Filter out already flagged (inspected or queued) elements or children of flagged elements
+      candidates = candidates.filter((el) => {
+        // Skip if already flagged
+        if (
+          el.hasAttribute('data-ai-transparency-inspected') ||
+          el.hasAttribute('data-ai-transparency-queued') ||
+          el.getAttribute('data-ai-transparency-inspected') === 'true' ||
+          el.getAttribute('data-ai-transparency-queued') === 'true'
+        ) {
+          return false;
+        }
+
+        // Skip if nested inside an already flagged parent post or row
+        if (
+          el.parentElement &&
+          typeof el.parentElement.closest === 'function' &&
+          el.parentElement.closest('[data-ai-transparency-inspected="true"], [data-ai-transparency-queued="true"]')
+        ) {
           return false;
         }
 
         // Must have non-zero layout or children (filters dead virtual DOM stubs)
-        if (el.childNodes.length === 0) return false;
+        if (el.childNodes && el.childNodes.length === 0) return false;
 
         return true;
       });
+
+      // 3. Intra-batch ancestor/descendant deduplication:
+      // If candidate A contains candidate B (e.g. div[role="row"] contains div.message-in),
+      // drop the outer ancestor so only the canonical message bubble receives the badge!
+      if (candidates.length > 1) {
+        candidates = candidates.filter((el) => {
+          const containsAnotherCandidate = candidates.some(
+            (other) => other !== el && typeof el.contains === 'function' && el.contains(other)
+          );
+          return !containsAnotherCandidate;
+        });
+      }
+
+      return candidates;
     }
 
     /**
@@ -187,18 +226,21 @@
         }
 
         case PLATFORMS.WHATSAPP: {
-          // 1. WhatsApp message bubble text or action bar
-          const bubble =
-            postNode.querySelector('div.copyable-text') ||
-            postNode.querySelector('div.message-in') ||
-            postNode.querySelector('div.message-out') ||
-            postNode.querySelector('span.selectable-text');
-
-          if (bubble && bubble.parentElement) {
-            return bubble.parentElement;
+          // If postNode is already a message bubble, use it directly as the anchor
+          if (
+            postNode.classList &&
+            (postNode.classList.contains('message-in') || postNode.classList.contains('message-out'))
+          ) {
+            return postNode;
           }
 
-          return postNode.firstElementChild || postNode;
+          // Locate inner message bubble if postNode is an outer row
+          const bubble =
+            postNode.querySelector('div.message-in') ||
+            postNode.querySelector('div.message-out') ||
+            postNode.querySelector('div.copyable-text');
+
+          return bubble || postNode.firstElementChild || postNode;
         }
 
         default:

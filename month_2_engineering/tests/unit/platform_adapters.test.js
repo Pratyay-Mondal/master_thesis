@@ -112,3 +112,46 @@ test('Platform Native Label Detection', async (t) => {
     assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.FACEBOOK, mockPost), false);
   });
 });
+
+test('WhatsApp Message Container Deduplication', async (t) => {
+  await t.test('drops outer div[role="row"] when inner message bubble is present in candidates', () => {
+    const mockBubble = {
+      classList: { contains: (cls) => cls === 'message-in' },
+      childNodes: [{}],
+      hasAttribute: () => false,
+      getAttribute: () => null,
+      parentElement: null,
+      contains: (other) => other === mockBubble
+    };
+
+    const mockRow = {
+      classList: { contains: () => false },
+      childNodes: [mockBubble],
+      hasAttribute: () => false,
+      getAttribute: () => null,
+      parentElement: null,
+      contains: (other) => other === mockBubble || other === mockRow
+    };
+
+    mockBubble.parentElement = mockRow;
+
+    const mockRoot = {
+      querySelectorAll: () => [mockRow, mockBubble],
+      matches: () => false
+    };
+
+    const candidates = PlatformAdapters.queryUninspectedPosts(PLATFORMS.WHATSAPP, mockRoot);
+
+    // Exactly one candidate returned: the inner bubble, dropping the outer row
+    assert.equal(candidates.length, 1);
+    assert.equal(candidates[0], mockBubble);
+  });
+
+  await t.test('getAnchorElement returns bubble directly when postNode is a message bubble', () => {
+    const mockBubble = {
+      classList: { contains: (cls) => cls === 'message-in' }
+    };
+    const anchor = PlatformAdapters.getAnchorElement(PLATFORMS.WHATSAPP, mockBubble);
+    assert.equal(anchor, mockBubble);
+  });
+});

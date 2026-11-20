@@ -101,16 +101,14 @@
 
         case PLATFORMS.INSTAGRAM:
           return [
-            // Standard and mock Instagram post containers
+            // Standard and mock Instagram post containers (must be full post cards, never inner image wrappers)
             'article',
             '[role="article"]',
             'div[role="article"]',
             'article[role="presentation"]',
             'main article',
             // Standalone modal / post detail view
-            'div[role="dialog"] article',
-            // Image card presentation wrapper fallback
-            'div._aagv'
+            'div[role="dialog"] article'
           ];
 
         case PLATFORMS.WHATSAPP:
@@ -193,9 +191,10 @@
       });
 
       // 3. Intra-batch ancestor/descendant deduplication:
-      // If candidate A contains candidate B (e.g. div[role="row"] contains div.message-in),
-      // drop the outer ancestor so only the canonical message bubble receives the badge!
-      if (candidates.length > 1) {
+      // Applied specifically for WhatsApp Web virtualized rows where div[role="row"] wraps div.message-in/out.
+      // We drop the outer row so only the canonical message bubble receives the badge.
+      // For Facebook & Instagram, post candidates are already top-level articles and must never be superseded by children.
+      if (platform === PLATFORMS.WHATSAPP && candidates.length > 1) {
         candidates = candidates.filter((el) => {
           const containsAnotherCandidate = candidates.some(
             (other) => other !== el && typeof el.contains === 'function' && el.contains(other)

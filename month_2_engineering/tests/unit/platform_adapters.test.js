@@ -81,6 +81,34 @@ test('Post Selector Coverage', async (t) => {
       assert.ok(selectors.some(s => s.includes('article') || s.includes('row')));
     }
   });
+
+  await t.test('Instagram queryUninspectedPosts preserves top-level article post containers', () => {
+    const mockImageContainer = {
+      tagName: 'DIV',
+      childNodes: [{}],
+      hasAttribute: () => false,
+      getAttribute: () => null,
+      parentElement: null
+    };
+    const mockArticle = {
+      tagName: 'ARTICLE',
+      childNodes: [mockImageContainer],
+      hasAttribute: () => false,
+      getAttribute: () => null,
+      parentElement: null,
+      contains: (other) => other === mockImageContainer || other === mockArticle
+    };
+    mockImageContainer.parentElement = mockArticle;
+
+    const mockRoot = {
+      querySelectorAll: () => [mockArticle],
+      matches: () => false
+    };
+
+    const results = PlatformAdapters.queryUninspectedPosts(PLATFORMS.INSTAGRAM, mockRoot);
+    assert.equal(results.length, 1);
+    assert.equal(results[0], mockArticle, 'Top-level article must be selected and preserved');
+  });
 });
 
 test('Platform Native Label Detection', async (t) => {

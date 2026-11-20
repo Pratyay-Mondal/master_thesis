@@ -55,12 +55,23 @@
       this.initIntersectionObserver();
       this.initMutationObserver();
 
-      // Scan already rendered DOM nodes immediately
-      this.queueUninspectedPosts(document.body);
+      // Immediate initial scan for pre-rendered static HTML mock pages & server-rendered feeds
+      this.scanExistingPosts();
 
       // Listen for client-side SPA navigation events (Meta React router)
       window.addEventListener('popstate', () => this.handleNavigationChange());
       window.addEventListener('hashchange', () => this.handleNavigationChange());
+    }
+
+    /**
+     * Performs an immediate scan of all existing posts in the DOM.
+     * Essential for static HTML mock pages and server-side rendered feeds.
+     */
+    scanExistingPosts() {
+      const root = (typeof document !== 'undefined' ? (document.body || document.documentElement) : null);
+      if (root) {
+        this.queueUninspectedPosts(root);
+      }
     }
 
     /**

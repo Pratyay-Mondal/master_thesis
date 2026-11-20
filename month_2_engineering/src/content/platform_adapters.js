@@ -32,14 +32,16 @@
 
   class PlatformAdapters {
     /**
-     * Determines the active social media platform based on window.location or document.body dataset.
-     * Prioritizes explicit body dataset (data-platform="instagram|facebook|whatsapp")
-     * and URL pathnames for local mock testing on localhost/file://.
+     * Determines the active social media platform based on DOM dataset or window.location.href.
+     * Order of precedence:
+     * 1. Explicit document.body.dataset.platform (e.g. data-platform="instagram|facebook|whatsapp")
+     * 2. Full window.location.href string matching 'instagram', 'facebook', 'whatsapp' (supports localhost & file://)
+     * 3. Fallback for localhost or 127.0.0.1 development servers
      *
      * @returns {string} One of PLATFORMS enum
      */
     static detectPlatform() {
-      // 1. Check explicit DOM override on body (useful for mock pages & test harnesses)
+      // 1. Check explicit DOM override on body (supports mock pages & test harnesses)
       if (typeof document !== 'undefined' && document.body && document.body.dataset && document.body.dataset.platform) {
         const bodyPlatform = String(document.body.dataset.platform).toLowerCase().trim();
         if (bodyPlatform === 'instagram' || bodyPlatform === PLATFORMS.INSTAGRAM) {
@@ -53,51 +55,23 @@
         }
       }
 
-      // 2. Inspect window.location attributes
+      // 2. Inspect full window.location.href string (matches live domains, pathnames, and mock filenames)
       const loc = typeof window !== 'undefined' && window.location ? window.location : null;
       const href = (loc?.href || '').toLowerCase();
       const host = (loc?.hostname || '').toLowerCase();
-      const pathname = (loc?.pathname || '').toLowerCase();
 
-      // Check Instagram: live domain, pathname, or mock URL
-      if (
-        host.includes('instagram.com') ||
-        pathname.includes('instagram') ||
-        href.includes('instagram_mock') ||
-        href.includes('instagram')
-      ) {
+      if (href.includes('instagram')) {
         return PLATFORMS.INSTAGRAM;
       }
-
-      // Check Facebook: live domain, pathname, or mock URL
-      if (
-        host.includes('facebook.com') ||
-        pathname.includes('facebook') ||
-        href.includes('facebook_mock') ||
-        href.includes('facebook')
-      ) {
+      if (href.includes('facebook')) {
         return PLATFORMS.FACEBOOK;
       }
-
-      // Check WhatsApp: live domain, pathname, or mock URL
-      if (
-        host.includes('whatsapp.com') ||
-        pathname.includes('whatsapp') ||
-        href.includes('whatsapp_mock') ||
-        href.includes('whatsapp')
-      ) {
+      if (href.includes('whatsapp')) {
         return PLATFORMS.WHATSAPP;
       }
 
-      // 3. Fallback for localhost, 127.0.0.1, or local file URLs with unspecified path
+      // 3. Fallback for generic localhost or 127.0.0.1 development servers without platform in URL
       if (host === 'localhost' || host === '127.0.0.1' || host === '' || href.startsWith('file:')) {
-        if (pathname.includes('instagram') || href.includes('instagram')) {
-          return PLATFORMS.INSTAGRAM;
-        }
-        if (pathname.includes('whatsapp') || href.includes('whatsapp')) {
-          return PLATFORMS.WHATSAPP;
-        }
-        // Default to Facebook on bare localhost if no platform is specified
         return PLATFORMS.FACEBOOK;
       }
 
@@ -125,10 +99,12 @@
 
         case PLATFORMS.INSTAGRAM:
           return [
-            // Standard Instagram Feed articles
-            'main article',
-            'article[role="presentation"]',
+            // Standard and mock Instagram post containers
             'article',
+            '[role="article"]',
+            'div[role="article"]',
+            'article[role="presentation"]',
+            'main article',
             // Standalone modal / post detail view
             'div[role="dialog"] article',
             // Image card presentation wrapper fallback
@@ -260,12 +236,19 @@
         }
 
         case PLATFORMS.INSTAGRAM: {
-          // 1. Instagram header bar containing username and avatar
-          const igHeader = postNode.querySelector('header');
+          // 1. Post header flex row (matches live Instagram header, mock headers, and class variants)
+          const igHeader =
+            postNode.querySelector('header') ||
+            postNode.querySelector('.post-header') ||
+            postNode.querySelector('div[class*="header"]');
+
           if (igHeader) {
-            // Find the username container inside the header
-            const userBar = igHeader.querySelector('div[class*="user"]') || igHeader.firstElementChild;
-            return userBar || igHeader;
+            // Target user block flex row beside author handle if present
+            const userBar =
+              igHeader.querySelector('.user-block') ||
+              igHeader.querySelector('div[class*="user"]') ||
+              igHeader;
+            return userBar;
           }
 
           // 2. Standalone image container fallback
@@ -274,6 +257,7 @@
             return imageContainer;
           }
 
+          // 3. Guaranteed non-null fallback to first child or post node itself
           return postNode.firstElementChild || postNode;
         }
 

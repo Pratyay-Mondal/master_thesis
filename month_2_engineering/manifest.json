@@ -29,7 +29,8 @@
     "*://*.whatsapp.net/*",
     "*://localhost/*",
     "*://127.0.0.1/*",
-    "https://*/*"
+    "https://*/*",
+    "file:///*"
   ],
   "background": {
     "service_worker": "src/background/background.js",
@@ -43,7 +44,7 @@
         "*://*.whatsapp.com/*",
         "*://localhost/*",
         "*://127.0.0.1/*",
-        "file://*/*"
+        "file:///*"
       ],
       "js": [
         "src/content/platform_adapters.js",

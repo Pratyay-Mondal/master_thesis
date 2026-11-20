@@ -6,6 +6,12 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load platform_adapters into global scope
 globalThis.window = { location: { hostname: 'www.facebook.com', href: 'https://www.facebook.com' } };
@@ -170,5 +176,145 @@ test('WhatsApp Message Container Deduplication', async (t) => {
     };
     const anchor = PlatformAdapters.getAnchorElement(PLATFORMS.WHATSAPP, mockBubble);
     assert.equal(anchor, mockBubble);
+  });
+});
+
+test('Real instagram_mock.html Regression Verification', async (t) => {
+  const htmlPath = path.resolve(__dirname, '../mock_pages/instagram_mock.html');
+  const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+
+  await t.test('detectPlatform() resolves to INSTAGRAM via body dataset and file/localhost URL', () => {
+    // 1. Verify <body data-platform="instagram"> is explicitly present in HTML
+    const bodyMatch = htmlContent.match(/<body[^>]*data-platform=["']([^"']+)["']/i);
+    assert.ok(bodyMatch, 'instagram_mock.html <body> must declare data-platform="instagram"');
+    assert.equal(bodyMatch[1].toLowerCase(), 'instagram');
+
+    // 2. Test DOM dataset resolution
+    globalThis.document = { body: { dataset: { platform: bodyMatch[1] } } };
+    globalThis.window = { location: { hostname: 'localhost', href: 'http://localhost:8080/mock_pages/instagram_mock.html' } };
+    assert.equal(PlatformAdapters.detectPlatform(), PLATFORMS.INSTAGRAM);
+    delete globalThis.document;
+
+    // 3. Test direct file:// URL resolution
+    globalThis.window = { location: { hostname: '', href: `file://${htmlPath}` } };
+    assert.equal(PlatformAdapters.detectPlatform(), PLATFORMS.INSTAGRAM);
+  });
+
+  await t.test('Discovers all 4 mock posts with non-null anchors and valid metadata', () => {
+    // Extract the 4 <article> blocks from real file
+    const articleRegex = /<article\b[^>]*>([\s\S]*?)<\/article>/gi;
+    const articleBlocks = [...htmlContent.matchAll(articleRegex)];
+    assert.equal(articleBlocks.length, 4, 'instagram_mock.html must contain exactly 4 test posts');
+
+    const mockArticles = articleBlocks.map((match, index) => {
+      const fullArticleHtml = match[0];
+      const innerArticleHtml = match[1];
+
+      // Extract image src
+      const imgSrcMatch = innerArticleHtml.match(/<img[^>]+src=["']([^"']+)["']/i);
+      const imgSrc = imgSrcMatch ? imgSrcMatch[1] : '';
+
+      // Extract caption text
+      const captionMatch = innerArticleHtml.match(/<span class="_a9zs">([\s\S]*?)<\/span>/i);
+      const captionText = captionMatch
+        ? captionMatch[1].replace(/<[^>]+>/g, '').trim()
+        : 'Sample Instagram post caption';
+
+      // Extract native AI label if present (e.g. aria-label="AI info" or "KI-Info")
+      const ariaLabelMatch = innerArticleHtml.match(/aria-label=["']([^"']+)["']/i);
+      const ariaLabel = ariaLabelMatch ? ariaLabelMatch[1] : null;
+
+      const userBlock = {
+        classList: { contains: (cls) => cls === 'user-block' },
+        querySelector: () => null,
+        firstElementChild: {}
+      };
+
+      const header = {
+        tagName: 'HEADER',
+        classList: { contains: (cls) => cls === 'post-header' },
+        querySelector: (sel) => {
+          if (sel.includes('user')) return userBlock;
+          return null;
+        },
+        firstElementChild: userBlock
+      };
+
+      const imgElement = {
+        src: imgSrc,
+        currentSrc: imgSrc,
+        naturalWidth: 470,
+        naturalHeight: 470
+      };
+
+      const textElement = {
+        innerText: captionText
+      };
+
+      const attrElement = ariaLabel
+        ? [{ getAttribute: (attr) => (attr === 'aria-label' ? ariaLabel : null) }]
+        : [];
+
+      const articleNode = {
+        tagName: 'ARTICLE',
+        classList: { contains: () => false },
+        childNodes: [{}],
+        attributes: {},
+        hasAttribute: (name) => name === 'role',
+        getAttribute: (name) => (name === 'role' ? 'presentation' : null),
+        setAttribute: (name, val) => { articleNode.attributes[name] = val; },
+        firstElementChild: header,
+        querySelector: (sel) => {
+          if (sel.includes('header')) return header;
+          if (sel.includes('_aagv')) return { firstElementChild: imgElement };
+          return null;
+        },
+        querySelectorAll: (sel) => {
+          if (sel.includes('img')) return [imgElement];
+          if (sel.includes('_a9zs') || sel.includes('span')) return [textElement];
+          if (sel.includes('aria-label') || sel.includes('title')) return attrElement;
+          return [];
+        },
+        innerText: `${captionText} ${ariaLabel || ''}`
+      };
+
+      return articleNode;
+    });
+
+    const mockRoot = {
+      querySelectorAll: (sel) => {
+        if (sel.includes('article')) return mockArticles;
+        return [];
+      },
+      matches: () => false
+    };
+
+    // 1. Query all posts via platform adapter
+    const discovered = PlatformAdapters.queryUninspectedPosts(PLATFORMS.INSTAGRAM, mockRoot);
+    assert.equal(discovered.length, 4, 'Must discover all 4 uninspected posts');
+
+    // 2. Validate anchor, media, and text for every discovered post
+    for (let i = 0; i < discovered.length; i++) {
+      const post = discovered[i];
+
+      // Non-null anchor guaranteed
+      const anchor = PlatformAdapters.getAnchorElement(PLATFORMS.INSTAGRAM, post);
+      assert.ok(anchor, `Post #${i + 1} must return a non-null anchor`);
+
+      // Media elements extracted
+      const media = PlatformAdapters.extractMediaElements(PLATFORMS.INSTAGRAM, post);
+      assert.ok(media.length > 0, `Post #${i + 1} must contain media`);
+      assert.ok(media[0].src.startsWith('https://picsum.photos/'), `Post #${i + 1} media src must be valid`);
+
+      // Text elements extracted
+      const text = PlatformAdapters.extractTextContent(PLATFORMS.INSTAGRAM, post);
+      assert.ok(text.length > 0, `Post #${i + 1} must contain non-empty text content`);
+    }
+
+    // 3. Validate EU AI Act Article 50 platform label detector on real mock contents
+    assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.INSTAGRAM, discovered[0]), true, 'Post A (AI info) must be tagged');
+    assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.INSTAGRAM, discovered[1]), true, 'Post B (KI-Info) must be tagged');
+    assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.INSTAGRAM, discovered[2]), false, 'Post C (Undisclosed) must not have native label');
+    assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.INSTAGRAM, discovered[3]), false, 'Post D (Human authentic) must not have native label');
   });
 });

@@ -136,7 +136,15 @@
           badgeEl.style.display = 'inline-flex';
           badgeEl.style.verticalAlign = 'middle';
 
-          if (anchorElement.firstChild) {
+          if (anchorElement.classList && anchorElement.classList.contains('user-block')) {
+            anchorElement.appendChild(badgeEl);
+          } else if (anchorElement.tagName === 'HEADER' || (anchorElement.classList && anchorElement.classList.contains('post-header'))) {
+            if (anchorElement.children.length > 1) {
+              anchorElement.insertBefore(badgeEl, anchorElement.children[1]);
+            } else {
+              anchorElement.appendChild(badgeEl);
+            }
+          } else if (anchorElement.firstChild) {
             anchorElement.insertBefore(badgeEl, anchorElement.firstChild);
           } else {
             anchorElement.appendChild(badgeEl);
@@ -189,7 +197,15 @@
           }
         });
 
-        if (anchorElement.firstChild) {
+        if (anchorElement.classList && anchorElement.classList.contains('user-block')) {
+          anchorElement.appendChild(host);
+        } else if (anchorElement.tagName === 'HEADER' || (anchorElement.classList && anchorElement.classList.contains('post-header'))) {
+          if (anchorElement.children.length > 1) {
+            anchorElement.insertBefore(host, anchorElement.children[1]);
+          } else {
+            anchorElement.appendChild(host);
+          }
+        } else if (anchorElement.firstChild) {
           anchorElement.insertBefore(host, anchorElement.firstChild);
         } else {
           anchorElement.appendChild(host);
@@ -618,7 +634,15 @@
         this.renderBadgeContent(badgeWrapper, shadowRoot, status);
 
         // Insert host safely into anchor
-        if (anchorElement.firstChild) {
+        if (anchorElement.classList && anchorElement.classList.contains('user-block')) {
+          anchorElement.appendChild(host);
+        } else if (anchorElement.tagName === 'HEADER' || (anchorElement.classList && anchorElement.classList.contains('post-header'))) {
+          if (anchorElement.children.length > 1) {
+            anchorElement.insertBefore(host, anchorElement.children[1]);
+          } else {
+            anchorElement.appendChild(host);
+          }
+        } else if (anchorElement.firstChild) {
           anchorElement.insertBefore(host, anchorElement.firstChild);
         } else {
           anchorElement.appendChild(host);

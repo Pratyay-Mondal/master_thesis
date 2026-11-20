@@ -18,7 +18,9 @@
     module.exports = factory();
   } else {
     root.AITransparency = root.AITransparency || {};
-    root.AITransparency.PlatformAdapters = factory();
+    const adapters = factory();
+    root.AITransparency.PlatformAdapters = adapters;
+    root.AITransparency.InstagramAdapter = adapters.InstagramAdapter;
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window, function () {
   'use strict';
@@ -236,19 +238,14 @@
         }
 
         case PLATFORMS.INSTAGRAM: {
-          // 1. Post header flex row (matches live Instagram header, mock headers, and class variants)
-          const igHeader =
+          // 1. Post top header container (header, .post-header, or first child)
+          const header =
+            postNode.querySelector('header, .post-header, div[class*="header"]') ||
             postNode.querySelector('header') ||
-            postNode.querySelector('.post-header') ||
-            postNode.querySelector('div[class*="header"]');
+            postNode.firstElementChild;
 
-          if (igHeader) {
-            // Target user block flex row beside author handle if present
-            const userBar =
-              igHeader.querySelector('.user-block') ||
-              igHeader.querySelector('div[class*="user"]') ||
-              igHeader;
-            return userBar;
+          if (header) {
+            return header;
           }
 
           // 2. Standalone image container fallback
@@ -257,8 +254,8 @@
             return imageContainer;
           }
 
-          // 3. Guaranteed non-null fallback to first child or post node itself
-          return postNode.firstElementChild || postNode;
+          // 3. Guaranteed non-null fallback to post node itself
+          return postNode;
         }
 
         case PLATFORMS.WHATSAPP: {
@@ -360,7 +357,9 @@
       }
 
       if (typeof postNode.querySelectorAll === 'function') {
-        const attrElements = postNode.querySelectorAll('[aria-label], [title], [aria-description], a[href*="ai_info"], a[href*="ki_info"]');
+        const attrElements = postNode.querySelectorAll(
+          '[aria-label], [title], [aria-description], a[href*="ai_info"], a[href*="ki_info"], .ig-ai-tag, [class*="ai-tag"]'
+        );
         for (const el of attrElements) {
           if (el.getAttribute) {
             const aLabel = el.getAttribute('aria-label');
@@ -374,6 +373,9 @@
               attrParts.push('ai info');
             }
           }
+          if (el.innerText) {
+            attrParts.push(el.innerText);
+          }
         }
       }
 
@@ -382,8 +384,8 @@
       // Multilingual patterns with word boundaries matching Meta's label terminology updates:
       // "AI info", "AI-Info", "Made with AI", German "KI-Info", "Mit KI erstellt", Spanish/French variants
       const patterns = [
-        /\b(?:🤖\s*)?ai[\s\-_/:]*info\b/i,
-        /\b(?:🤖\s*)?ki[\s\-_/:]*info\b/i,
+        /(?:🤖|✨)?\s*ai[\s\-_/:]*info\b/i,
+        /(?:🤖|✨)?\s*ki[\s\-_/:]*info\b/i,
         /\bmade\s+with\s+ai\b/i,
         /\bmit\s+ki\s+erstellt\b/i,
         /\bgeneriert\s+mit\s+ki\b/i,
@@ -395,8 +397,32 @@
 
       return patterns.some((p) => p.test(combined));
     }
+
+    /**
+     * Ergonomic helper method matching testbed conventions.
+     * @param {Element} postNode
+     * @returns {boolean}
+     */
+    static hasNativeLabel(postNode) {
+      return this.detectPlatformNativeLabel(PLATFORMS.INSTAGRAM, postNode);
+    }
   }
 
+  const InstagramAdapter = {
+    getAnchorElement: (postNode) => PlatformAdapters.getAnchorElement(PLATFORMS.INSTAGRAM, postNode),
+    hasNativeLabel: (postNode) => PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.INSTAGRAM, postNode),
+    getPostSelectors: () => PlatformAdapters.getPostSelectors(PLATFORMS.INSTAGRAM),
+    extractMediaElements: (postNode) => PlatformAdapters.extractMediaElements(PLATFORMS.INSTAGRAM, postNode),
+    extractTextContent: (postNode) => PlatformAdapters.extractTextContent(PLATFORMS.INSTAGRAM, postNode)
+  };
+
+  PlatformAdapters.InstagramAdapter = InstagramAdapter;
   PlatformAdapters.PLATFORMS = PLATFORMS;
+
+  if (typeof root !== 'undefined') {
+    root.AITransparency = root.AITransparency || {};
+    root.AITransparency.InstagramAdapter = InstagramAdapter;
+  }
+
   return PlatformAdapters;
 });

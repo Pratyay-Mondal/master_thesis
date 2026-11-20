@@ -78,11 +78,13 @@
 
         case 'instagram':
           return [
-            'div._a9zs',
-            '.caption span',
+            '._a9zs',
+            '.caption',
             'span._ap3a',
             'span._aacl',
-            'h1'
+            'div[class*="caption"]',
+            'article p',
+            'p'
           ];
 
         case 'whatsapp':
@@ -121,7 +123,11 @@
     static filterOutNestedNodes(nodes) {
       return nodes.filter((node, idx) => {
         for (let i = 0; i < nodes.length; i++) {
-          if (i !== idx && nodes[i].contains(node)) {
+          if (
+            i !== idx &&
+            typeof nodes[i].contains === 'function' &&
+            nodes[i].contains(node)
+          ) {
             return false;
           }
         }
@@ -131,15 +137,48 @@
 
     /**
      * Reads visible text from an element safely across browser DOM and mock environments.
+     * Automatically strips author username handles if embedded inside captions.
      * @param {Element} el
      * @returns {string}
      */
     static readNodeText(el) {
       if (!el) return '';
-      if (typeof el.innerText === 'string' && el.innerText.length > 0) {
-        return el.innerText;
+
+      // Clone element so we can safely strip author handles without mutating the live DOM
+      if (typeof el.cloneNode === 'function') {
+        const clone = el.cloneNode(true);
+        if (typeof clone.querySelectorAll === 'function') {
+          const handles = clone.querySelectorAll(
+            '.caption-username, [data-ad-rendering-role="profile_name"], a[role="link"][tabindex="0"]'
+          );
+          for (const h of handles) {
+            h.remove();
+          }
+        }
+        let text = typeof clone.innerText === 'string' && clone.innerText.length > 0
+          ? clone.innerText
+          : (clone.textContent || '');
+
+        return text.trim();
       }
-      return el.textContent || '';
+
+      // Fallback if cloneNode is unavailable (e.g. lightweight test mock)
+      let text = typeof el.innerText === 'string' && el.innerText.length > 0
+        ? el.innerText
+        : (el.textContent || '');
+
+      // Strip leading username if element has .caption-username child
+      if (typeof el.querySelector === 'function') {
+        const uNode = el.querySelector('.caption-username, [data-ad-rendering-role="profile_name"]');
+        if (uNode) {
+          const uText = (uNode.innerText || uNode.textContent || '').trim();
+          if (uText && text.startsWith(uText)) {
+            text = text.slice(uText.length).trim();
+          }
+        }
+      }
+
+      return text.trim();
     }
 
     /**

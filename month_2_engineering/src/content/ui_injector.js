@@ -150,6 +150,7 @@
             anchorElement.appendChild(badgeEl);
           }
 
+          console.log('[AI-Transparency-Validator] [Injector] Mounted <ai-transparency-badge> in anchor:', anchorElement);
           return badgeEl;
         } catch (err) {
           console.warn('[AI-Transparency-Validator] [Injector] <ai-transparency-badge> creation failed, using Shadow DOM fallback:', err);
@@ -211,6 +212,7 @@
           anchorElement.appendChild(host);
         }
 
+        console.log('[AI-Transparency-Validator] [Injector] Mounted Shadow DOM compliance host in anchor:', anchorElement);
         return host;
       } catch (err) {
         console.error('[AI-Transparency-Validator] [Injector] Shadow DOM host fallback failed:', err);

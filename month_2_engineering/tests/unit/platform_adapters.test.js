@@ -16,8 +16,11 @@ const __dirname = path.dirname(__filename);
 // Load platform_adapters into global scope
 globalThis.window = { location: { hostname: 'www.facebook.com', href: 'https://www.facebook.com' } };
 await import('../../src/content/platform_adapters.js');
+await import('../../src/modules/text_extractor.js');
+await import('../../src/modules/text_analyzer.js');
 
-const { PlatformAdapters } = globalThis.AITransparency;
+const { PlatformAdapters, TextExtractor, TextAnalyzer } = globalThis.AITransparency;
+const InstagramAdapter = PlatformAdapters.InstagramAdapter || globalThis.AITransparency.InstagramAdapter;
 const { PLATFORMS } = PlatformAdapters;
 
 test('Platform Detection Strategy', async (t) => {
@@ -200,7 +203,7 @@ test('Real instagram_mock.html Regression Verification', async (t) => {
     assert.equal(PlatformAdapters.detectPlatform(), PLATFORMS.INSTAGRAM);
   });
 
-  await t.test('Discovers all 4 mock posts with non-null anchors and valid metadata', () => {
+  await t.test('Discovers all 4 mock posts with non-null anchors, native labels, and text length verification', () => {
     // Extract the 4 <article> blocks from real file
     const articleRegex = /<article\b[^>]*>([\s\S]*?)<\/article>/gi;
     const articleBlocks = [...htmlContent.matchAll(articleRegex)];
@@ -214,13 +217,21 @@ test('Real instagram_mock.html Regression Verification', async (t) => {
       const imgSrcMatch = innerArticleHtml.match(/<img[^>]+src=["']([^"']+)["']/i);
       const imgSrc = imgSrcMatch ? imgSrcMatch[1] : '';
 
-      // Extract caption text
-      const captionMatch = innerArticleHtml.match(/<span class="_a9zs">([\s\S]*?)<\/span>/i);
-      const captionText = captionMatch
-        ? captionMatch[1].replace(/<[^>]+>/g, '').trim()
-        : 'Sample Instagram post caption';
+      // Extract username handle
+      const usernameMatch = innerArticleHtml.match(/<span class="caption-username">([^<]+)<\/span>/i);
+      const username = usernameMatch ? usernameMatch[1].trim() : '';
 
-      // Extract native AI label if present (e.g. aria-label="AI info" or "KI-Info")
+      // Extract full caption block from .caption container
+      const captionBlockMatch = innerArticleHtml.match(/<div class="caption">([\s\S]*?)<\/div>/i);
+      const rawCaptionHtml = captionBlockMatch ? captionBlockMatch[1] : '';
+      const rawCaptionText = rawCaptionHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+      // Body text with author username stripped
+      const captionBodyText = username && rawCaptionText.startsWith(username)
+        ? rawCaptionText.slice(username.length).trim()
+        : rawCaptionText;
+
+      // Extract native AI label if present (e.g. aria-label="AI info" or "KI-Info" or class="ig-ai-tag")
       const ariaLabelMatch = innerArticleHtml.match(/aria-label=["']([^"']+)["']/i);
       const ariaLabel = ariaLabelMatch ? ariaLabelMatch[1] : null;
 
@@ -247,12 +258,40 @@ test('Real instagram_mock.html Regression Verification', async (t) => {
         naturalHeight: 470
       };
 
+      const usernameElement = {
+        tagName: 'SPAN',
+        classList: { contains: (cls) => cls === 'caption-username' },
+        innerText: username,
+        textContent: username,
+        closest: () => null
+      };
+
       const textElement = {
-        innerText: captionText
+        tagName: 'SPAN',
+        classList: { contains: (cls) => cls === '_a9zs' },
+        innerText: `${username} ${captionBodyText}`,
+        textContent: `${username} ${captionBodyText}`,
+        closest: () => null,
+        contains: (other) => other === textElement || other === usernameElement,
+        querySelector: (sel) => {
+          if (sel.includes('caption-username')) return usernameElement;
+          return null;
+        },
+        querySelectorAll: (sel) => {
+          if (sel.includes('caption-username')) return [usernameElement];
+          return [];
+        },
+        cloneNode: () => {
+          return {
+            innerText: captionBodyText,
+            textContent: captionBodyText,
+            querySelectorAll: () => []
+          };
+        }
       };
 
       const attrElement = ariaLabel
-        ? [{ getAttribute: (attr) => (attr === 'aria-label' ? ariaLabel : null) }]
+        ? [{ getAttribute: (attr) => (attr === 'aria-label' ? ariaLabel : null), innerText: ariaLabel }]
         : [];
 
       const articleNode = {
@@ -264,18 +303,20 @@ test('Real instagram_mock.html Regression Verification', async (t) => {
         getAttribute: (name) => (name === 'role' ? 'presentation' : null),
         setAttribute: (name, val) => { articleNode.attributes[name] = val; },
         firstElementChild: header,
+        contains: (other) => other === articleNode || other === header || other === textElement,
         querySelector: (sel) => {
           if (sel.includes('header')) return header;
           if (sel.includes('_aagv')) return { firstElementChild: imgElement };
+          if (sel.includes('_a9zs') || sel.includes('caption')) return textElement;
           return null;
         },
         querySelectorAll: (sel) => {
           if (sel.includes('img')) return [imgElement];
-          if (sel.includes('_a9zs') || sel.includes('span')) return [textElement];
-          if (sel.includes('aria-label') || sel.includes('title')) return attrElement;
+          if (sel.includes('_a9zs') || sel.includes('caption')) return [textElement];
+          if (sel.includes('aria-label') || sel.includes('title') || sel.includes('ai-tag')) return attrElement;
           return [];
         },
-        innerText: `${captionText} ${ariaLabel || ''}`
+        innerText: `${captionBodyText} ${ariaLabel || ''}`
       };
 
       return articleNode;
@@ -297,24 +338,39 @@ test('Real instagram_mock.html Regression Verification', async (t) => {
     for (let i = 0; i < discovered.length; i++) {
       const post = discovered[i];
 
-      // Non-null anchor guaranteed
+      // Non-null anchor guaranteed via both PlatformAdapters and InstagramAdapter
       const anchor = PlatformAdapters.getAnchorElement(PLATFORMS.INSTAGRAM, post);
       assert.ok(anchor, `Post #${i + 1} must return a non-null anchor`);
+      assert.equal(InstagramAdapter.getAnchorElement(post), anchor, `InstagramAdapter.getAnchorElement must match for Post #${i + 1}`);
 
       // Media elements extracted
       const media = PlatformAdapters.extractMediaElements(PLATFORMS.INSTAGRAM, post);
       assert.ok(media.length > 0, `Post #${i + 1} must contain media`);
       assert.ok(media[0].src.startsWith('https://picsum.photos/'), `Post #${i + 1} media src must be valid`);
 
-      // Text elements extracted
-      const text = PlatformAdapters.extractTextContent(PLATFORMS.INSTAGRAM, post);
-      assert.ok(text.length > 0, `Post #${i + 1} must contain non-empty text content`);
+      // Text elements extracted via TextExtractor
+      const extractedText = TextExtractor.extractPostText('instagram', post);
+      assert.ok(extractedText.length > 0, `Post #${i + 1} must have extracted text content`);
+      const { tokenCount } = TextAnalyzer.analyzeText(extractedText);
+
+      if (i === 0 || i === 2) {
+        // Posts #1 and #3: Substantial long-form AI prose (> 50 tokens)
+        assert.ok(tokenCount >= 50, `Post #${i + 1} must exceed 50-token threshold (got ${tokenCount})`);
+      } else if (i === 3) {
+        // Post #4: Short human caption (< 50 tokens)
+        assert.ok(tokenCount < 50, `Post #${i + 1} must be below 50-token threshold (got ${tokenCount})`);
+      }
     }
 
     // 3. Validate EU AI Act Article 50 platform label detector on real mock contents
-    assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.INSTAGRAM, discovered[0]), true, 'Post A (AI info) must be tagged');
-    assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.INSTAGRAM, discovered[1]), true, 'Post B (KI-Info) must be tagged');
-    assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.INSTAGRAM, discovered[2]), false, 'Post C (Undisclosed) must not have native label');
-    assert.equal(PlatformAdapters.detectPlatformNativeLabel(PLATFORMS.INSTAGRAM, discovered[3]), false, 'Post D (Human authentic) must not have native label');
+    assert.equal(InstagramAdapter.hasNativeLabel(discovered[0]), true, 'Post A (AI info) must be tagged');
+    assert.equal(InstagramAdapter.hasNativeLabel(discovered[1]), true, 'Post B (KI-Info) must be tagged');
+    assert.equal(InstagramAdapter.hasNativeLabel(discovered[2]), false, 'Post C (Undisclosed) must not have native label');
+    assert.equal(InstagramAdapter.hasNativeLabel(discovered[3]), false, 'Post D (Human authentic) must not have native label');
+
+    assert.equal(PlatformAdapters.hasNativeLabel(discovered[0]), true, 'PlatformAdapters.hasNativeLabel Post A');
+    assert.equal(PlatformAdapters.hasNativeLabel(discovered[1]), true, 'PlatformAdapters.hasNativeLabel Post B');
+    assert.equal(PlatformAdapters.hasNativeLabel(discovered[2]), false, 'PlatformAdapters.hasNativeLabel Post C');
+    assert.equal(PlatformAdapters.hasNativeLabel(discovered[3]), false, 'PlatformAdapters.hasNativeLabel Post D');
   });
 });

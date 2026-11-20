@@ -29,6 +29,17 @@
 
   const BaseHTMLElement = typeof HTMLElement !== 'undefined' ? HTMLElement : class {};
 
+  /**
+   * Rationale for "⚪ Unverifiable" over "Micro-span" or "Undetectable":
+   * Based on C2PA UX Recommendations (2023) and plain-English regulatory transparency
+   * research for EU AI Act Art. 50(5):
+   * 1. "Micro-span" is internal engineering jargon (referencing the 50-token entropy threshold)
+   *    that conveys zero meaning to non-technical users, judges, or compliance auditors.
+   * 2. "Undetectable" or "Human" would be misleading and legally problematic, making an
+   *    unsubstantiated affirmative claim that the content is definitely human-authored.
+   * 3. "Unverifiable" truthfully and accurately communicates the epistemic boundary: the text
+   *    length or media data is insufficient to conclusively prove or disprove synthetic origin.
+   */
   const PILL_THEMES = {
     SCANNING: {
       label: '🔍 AI: Auditing...',
@@ -38,7 +49,7 @@
       glow: 'rgba(63, 131, 248, 0.45)'
     },
     VERIFIED: {
-      label: '🟢 Verified AI Provenance',
+      label: '🟢 Verified AI',
       bg: '#057a55',
       border: '#10b981',
       text: '#ffffff',
@@ -59,7 +70,7 @@
       glow: 'rgba(239, 68, 68, 0.55)'
     },
     NO_SIGNAL: {
-      label: '⚪ No Signal / Micro-span',
+      label: '⚪ Unverifiable',
       bg: '#374151',
       border: '#6b7280',
       text: '#f9fafb',
@@ -116,23 +127,27 @@
     }
 
     /**
-     * Computes a concise, informative pill label reflecting the active verdict.
+     * Computes a concise, user-friendly pill label reflecting the active verdict.
+     * Technical diagnostics (such as z-scores and token counts) are deliberately excluded
+     * from the pill surface and progressively disclosed inside <ai-audit-drawer>.
      */
     resolvePillLabel(stateKey) {
       const base = PILL_THEMES[stateKey] || PILL_THEMES.NO_SIGNAL;
       if (!this._compliance) return base.label;
 
-      const txt = this._compliance.signals?.text;
       const img = this._compliance.signals?.image;
 
-      if (stateKey === 'UNDISCLOSED_AI' && typeof txt?.zScore === 'number' && txt.zScore > 3.0) {
-        return `🔴 Undisclosed AI (z=${txt.zScore.toFixed(1)})`;
+      if (stateKey === 'UNDISCLOSED_AI') {
+        return '🔴 Undisclosed AI';
       }
-      if (stateKey === 'VERIFIED' && img?.c2paStatus === 'VALID') {
-        return '🟢 Verified (C2PA)';
+      if (stateKey === 'VERIFIED') {
+        return img?.c2paStatus === 'VALID' ? '🟢 Verified (C2PA)' : '🟢 Verified AI';
       }
-      if (stateKey === 'NO_SIGNAL' && txt?.status === 'INSUFFICIENT_LENGTH') {
-        return `⚪ Micro-span (${txt.tokenCount} tok)`;
+      if (stateKey === 'PLATFORM_TAGGED') {
+        return '🟡 Platform Tagged';
+      }
+      if (stateKey === 'NO_SIGNAL') {
+        return '⚪ Unverifiable';
       }
 
       return base.label;

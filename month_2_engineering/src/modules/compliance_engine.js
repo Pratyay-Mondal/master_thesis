@@ -73,29 +73,23 @@
       // -----------------------------------------------------------------------
       let art50_2;
       if (hasValidC2PA || hasTextWatermark) {
-        const mechanisms = [];
-        if (hasValidC2PA) mechanisms.push('cryptographic C2PA JUMBF manifest verified');
-        if (hasTextWatermark) {
-          mechanisms.push(`statistical text watermark detected (z=${zScore !== null ? zScore.toFixed(2) : '>3.0'})`);
-        }
         art50_2 = {
           status: COMPLIANCE_VERDICT.COMPLIANT,
-          rationale: `Machine-readable provenance satisfied: ${mechanisms.join(' and ')}.`
+          rationale:
+            'This content includes a verified digital watermark or cryptographic signature embedded by the AI system that generated it.'
         };
       } else if ((isC2PAStripped || isC2PAInvalid) && hasPlatformLabel) {
         art50_2 = {
           status: COMPLIANCE_VERDICT.NON_COMPLIANT,
           rationale: isC2PAInvalid
-            ? 'Platform label present, but underlying C2PA manifest signature is invalid or tampered.'
-            : 'Platform "Made with AI" label present, but CDN pipeline stripped machine-readable C2PA metadata (Platform Ingestion Trap).'
+            ? 'The platform labeled this as AI, but the original digital authenticity signature from the AI creator is damaged or tampered.'
+            : 'The platform labeled this as AI, but the original digital authenticity signature from the AI creator is missing or was stripped during upload.'
         };
       } else {
         art50_2 = {
           status: COMPLIANCE_VERDICT.UNKNOWN,
           rationale:
-            textResult?.status === 'INSUFFICIENT_LENGTH'
-              ? `No C2PA manifest found and text span (${textResult.tokenCount || 0} tokens) is below the 50-token statistical threshold.`
-              : 'No surviving C2PA manifest or statistically significant text watermark (z > 3.0) detected.'
+            'No digital authenticity mark from an AI creator was detected.'
         };
       }
 
@@ -109,20 +103,20 @@
       if (hasPlatformLabel) {
         art50_4 = {
           status: COMPLIANCE_VERDICT.COMPLIANT,
-          rationale: hasTechnicalAISignal
-            ? 'Deployer disclosure ("Made with AI" / native label) is present alongside verified AI provenance.'
-            : 'Deployer disclosure ("Made with AI" / native label) is rendered in the post DOM, though underlying machine-readable proof is absent or stripped.'
+          rationale:
+            'The publisher or platform clearly informed viewers that this content was created using AI.'
         };
       } else if (hasTechnicalAISignal) {
         art50_4 = {
           status: COMPLIANCE_VERDICT.NON_COMPLIANT,
           rationale:
-            'Synthetic AI provenance detected (valid C2PA or text z > 3.0), but no user-facing deployer disclosure label is present.'
+            'AI-generated content was detected, but the publisher did not disclose this to viewers.'
         };
       } else {
         art50_4 = {
           status: COMPLIANCE_VERDICT.UNKNOWN,
-          rationale: 'Neither technical AI provenance signals nor a deployer disclosure label were detected.'
+          rationale:
+            'No AI disclosure was found, and no verified AI signals were detected.'
         };
       }
 
@@ -134,7 +128,7 @@
       const art50_5 = {
         status: COMPLIANCE_VERDICT.COMPLIANT,
         rationale:
-          'Information is presented clearly, distinguishably, and accessibly at first exposure via the isolated Shadow DOM indicator and audit drawer.'
+          'Transparency information and legal compliance details are displayed clearly at first view.'
       };
 
       // -----------------------------------------------------------------------

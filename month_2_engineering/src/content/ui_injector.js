@@ -53,7 +53,7 @@
     },
     UNLABELED_AI: {
       key: 'UNLABELED_AI',
-      label: '🚨 AI: Undisclosed Synthetic Media',
+      label: '🚨 AI: Undisclosed',
       bg: '#c81e1e',
       border: '#e02424',
       text: '#ffffff',
@@ -71,7 +71,7 @@
     },
     NO_WATERMARK: {
       key: 'NO_WATERMARK',
-      label: '⚪ AI: No Signal Detected',
+      label: '⚪ AI: Unverifiable',
       bg: '#1f2937',
       border: '#6b7280',
       text: '#f9fafb',
@@ -80,7 +80,7 @@
     },
     INSUFFICIENT: {
       key: 'INSUFFICIENT',
-      label: '⚪ AI: Inconclusive / Short',
+      label: '⚪ AI: Unverifiable',
       bg: '#374151',
       border: '#4b5563',
       text: '#f9fafb',
@@ -234,7 +234,7 @@
           glow: 'rgba(63, 131, 248, 0.45)'
         },
         VERIFIED: {
-          label: compliance?.signals?.image?.c2paStatus === 'VALID' ? '🟢 Verified (C2PA)' : '🟢 Verified AI Provenance',
+          label: compliance?.signals?.image?.c2paStatus === 'VALID' ? '🟢 Verified (C2PA)' : '🟢 Verified AI',
           bg: '#057a55',
           border: '#10b981',
           text: '#ffffff',
@@ -248,18 +248,14 @@
           glow: 'rgba(245, 158, 11, 0.45)'
         },
         UNDISCLOSED_AI: {
-          label: typeof compliance?.signals?.text?.zScore === 'number' && compliance.signals.text.zScore > 3.0
-            ? `🔴 Undisclosed AI (z=${compliance.signals.text.zScore.toFixed(1)})`
-            : '🔴 Undisclosed AI',
+          label: '🔴 Undisclosed AI',
           bg: '#b91c1c',
           border: '#ef4444',
           text: '#ffffff',
           glow: 'rgba(239, 68, 68, 0.55)'
         },
         NO_SIGNAL: {
-          label: compliance?.signals?.text?.status === 'INSUFFICIENT_LENGTH'
-            ? `⚪ Micro-span (${compliance.signals.text.tokenCount} tok)`
-            : '⚪ No Signal / Micro-span',
+          label: '⚪ Unverifiable',
           bg: '#374151',
           border: '#6b7280',
           text: '#f9fafb',
@@ -304,14 +300,14 @@
      * Calculates clamped viewport coordinates (top, left) ensuring the drawer
      * renders cleanly beside/below its trigger button without overflowing the viewport.
      */
-    static computePosition(triggerRect, drawerDims = { width: 348, height: 380 }, viewport = null, margin = 8) {
+    static computePosition(triggerRect, drawerDims = { width: 440, height: 420 }, viewport = null, margin = 8) {
       const vp = viewport || {
         width: typeof window !== 'undefined' && window.innerWidth ? window.innerWidth : 1024,
         height: typeof window !== 'undefined' && window.innerHeight ? window.innerHeight : 768
       };
 
-      const dWidth = Math.min(drawerDims.width || 348, Math.max(200, vp.width - margin * 2));
-      const dHeight = drawerDims.height || 380;
+      const dWidth = Math.min(drawerDims.width || 440, Math.max(200, vp.width - margin * 2));
+      const dHeight = drawerDims.height || 420;
 
       let left = triggerRect.left;
       if (left + dWidth > vp.width - margin) {
@@ -412,54 +408,61 @@
         drawer.setAttribute('popover', 'auto');
         drawer.innerHTML = `
           <div class="drawer-header">
-            <span class="drawer-title">EU AI Act Article 50 Audit</span>
+            <span class="drawer-title">EU AI Act Transparency Check</span>
             <button class="drawer-close" type="button" aria-label="Close panel">&times;</button>
           </div>
           <div class="drawer-body">
-            <div class="drawer-section-title">Technical Provenance Signals</div>
-            <div class="audit-row">
-              <span class="row-tag">C2PA Manifest:</span>
-              <span class="row-info">${this.escapeHtml(c2paDisplay)}${img.claimGenerator ? ` (${this.escapeHtml(img.claimGenerator)})` : ''}</span>
-            </div>
-            <div class="audit-row">
-              <span class="row-tag">Platform Label:</span>
-              <span class="row-info">${compliance?.platformLabelPresent ? 'Detected ("Made with AI")' : 'None detected'}</span>
-            </div>
-            <div class="audit-row">
-              <span class="row-tag">Token Count:</span>
-              <span class="row-info">${this.escapeHtml(tokenDisplay)}</span>
-            </div>
-            <div class="audit-row">
-              <span class="row-tag">Entropy Gate:</span>
-              <span class="row-info">${this.escapeHtml(entropyGateDisplay)}</span>
-            </div>
-            <div class="audit-row">
-              <span class="row-tag">SynthID z-Score:</span>
-              <span class="row-info">${this.escapeHtml(zDisplay)}</span>
-            </div>
-
-            <div class="drawer-section-title" style="margin-top: 10px;">Legal Compliance Verdicts</div>
+            <div class="drawer-section-title">Legal Compliance Verdicts</div>
             <div class="verdict-block">
               <div class="verdict-header">
-                <span class="verdict-title">Art. 50(2) · Provider Marking</span>
+                <span class="verdict-title">Art. 50(2) · AI Creator Marking</span>
                 <span class="verdict-badge ${getPillClass(art50_2.status)}">${this.escapeHtml(art50_2.status)}</span>
               </div>
               <div class="verdict-rationale">${this.escapeHtml(art50_2.rationale)}</div>
             </div>
             <div class="verdict-block">
               <div class="verdict-header">
-                <span class="verdict-title">Art. 50(4) · Deployer Disclosure</span>
+                <span class="verdict-title">Art. 50(4) · Publisher Disclosure</span>
                 <span class="verdict-badge ${getPillClass(art50_4.status)}">${this.escapeHtml(art50_4.status)}</span>
               </div>
               <div class="verdict-rationale">${this.escapeHtml(art50_4.rationale)}</div>
             </div>
             <div class="verdict-block">
               <div class="verdict-header">
-                <span class="verdict-title">Art. 50(5) · User Visibility</span>
+                <span class="verdict-title">Art. 50(5) · Clear User Visibility</span>
                 <span class="verdict-badge ${getPillClass(art50_5.status)}">${this.escapeHtml(art50_5.status)}</span>
               </div>
               <div class="verdict-rationale">${this.escapeHtml(art50_5.rationale)}</div>
             </div>
+
+            <details class="technical-collapsible">
+              <summary class="technical-summary">
+                <span class="technical-summary-title">⚙️ Technical Diagnostics · For AI Engineers</span>
+                <span class="technical-chevron">▼</span>
+              </summary>
+              <div class="technical-content">
+                <div class="audit-row">
+                  <span class="row-tag">C2PA Manifest:</span>
+                  <span class="row-info">${this.escapeHtml(c2paDisplay)}${img.claimGenerator ? ` (${this.escapeHtml(img.claimGenerator)})` : ''}</span>
+                </div>
+                <div class="audit-row">
+                  <span class="row-tag">Platform Label:</span>
+                  <span class="row-info">${compliance?.platformLabelPresent ? 'Detected ("Made with AI" / "AI info")' : 'None detected'}</span>
+                </div>
+                <div class="audit-row">
+                  <span class="row-tag">Token Count:</span>
+                  <span class="row-info">${this.escapeHtml(tokenDisplay)}</span>
+                </div>
+                <div class="audit-row">
+                  <span class="row-tag">Entropy Gate:</span>
+                  <span class="row-info">${this.escapeHtml(entropyGateDisplay)}</span>
+                </div>
+                <div class="audit-row">
+                  <span class="row-tag">SynthID z-Score:</span>
+                  <span class="row-info">${this.escapeHtml(zDisplay)}</span>
+                </div>
+              </div>
+            </details>
           </div>
           <div class="drawer-footer">
             THWS Master's Thesis Prototype · Client-Side Provenance Validator
@@ -469,6 +472,31 @@
         drawer.addEventListener('pointerdown', (e) => e.stopPropagation());
         drawer.addEventListener('mousedown', (e) => e.stopPropagation());
         drawer.addEventListener('click', (e) => e.stopPropagation());
+
+        const techDetails = drawer.querySelector('.technical-collapsible');
+        if (techDetails) {
+          techDetails.addEventListener('mouseenter', () => {
+            if (!techDetails.hasAttribute('data-pinned')) {
+              techDetails.open = true;
+            }
+          });
+          techDetails.addEventListener('mouseleave', () => {
+            if (!techDetails.hasAttribute('data-pinned')) {
+              techDetails.open = false;
+            }
+          });
+          const summary = techDetails.querySelector('.technical-summary');
+          if (summary) {
+            summary.addEventListener('click', () => {
+              if (techDetails.hasAttribute('data-pinned')) {
+                techDetails.removeAttribute('data-pinned');
+              } else {
+                techDetails.setAttribute('data-pinned', 'true');
+                techDetails.open = true;
+              }
+            });
+          }
+        }
 
         const closeBtn = drawer.querySelector('.drawer-close');
         if (closeBtn) {
@@ -495,7 +523,7 @@
       const updatePosition = () => {
         if (!triggerBtn || typeof triggerBtn.getBoundingClientRect !== 'function') return;
         const rect = triggerBtn.getBoundingClientRect();
-        const coords = UIInjector.computePosition(rect, { width: 348, height: 400 });
+        const coords = UIInjector.computePosition(rect, { width: 440, height: 420 });
         if (coords.isOffscreen) {
           if (typeof drawer.hidePopover === 'function') {
             try {
@@ -822,17 +850,17 @@
           position: fixed;
           inset: auto;
           margin: 0;
-          width: 348px;
-          max-width: calc(100vw - 20px);
+          width: 440px;
+          max-width: min(440px, calc(100vw - 20px));
           max-height: calc(100vh - 20px);
           overflow-y: auto;
           overflow-x: hidden;
           background: #111827;
           border: 1px solid #374151;
-          border-radius: 10px;
-          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
           z-index: 2147483647;
-          padding: 12px;
+          padding: 14px;
           color: #f9fafb;
           box-sizing: border-box;
         }
@@ -857,23 +885,22 @@
           justify-content: space-between;
           align-items: center;
           border-bottom: 1px solid #374151;
-          padding-bottom: 6px;
-          margin-bottom: 8px;
+          padding-bottom: 8px;
+          margin-bottom: 10px;
         }
 
         .drawer-title {
           font-weight: 700;
-          font-size: 11px;
-          color: #93c5fd;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+          font-size: 13px;
+          color: #f9fafb;
+          letter-spacing: 0.2px;
         }
 
         .drawer-close {
           background: none;
           border: none;
           color: #9ca3af;
-          font-size: 16px;
+          font-size: 18px;
           line-height: 1;
           cursor: pointer;
           padding: 2px 6px;
@@ -888,43 +915,24 @@
         .drawer-body {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 8px;
           font-size: 11px;
         }
 
-        .audit-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 8px;
-        }
-
-        .row-tag {
-          color: #9ca3af;
-          font-weight: 500;
-          min-width: 80px;
-        }
-
-        .row-info {
-          font-weight: 600;
-          text-align: right;
-          color: #f3f4f6;
-        }
-
         .drawer-section-title {
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.6px;
           color: #9ca3af;
-          margin-bottom: 3px;
+          margin-bottom: 4px;
         }
 
         .verdict-block {
           background: #1a2234;
           border: 1px solid #2d3748;
-          border-radius: 6px;
-          padding: 6px 8px;
+          border-radius: 8px;
+          padding: 8px 10px;
           margin-bottom: 4px;
         }
 
@@ -932,19 +940,19 @@
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 3px;
+          margin-bottom: 4px;
         }
 
         .verdict-title {
           font-weight: 700;
-          font-size: 11px;
+          font-size: 11.5px;
           color: #f9fafb;
         }
 
         .verdict-badge {
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 700;
-          padding: 1px 6px;
+          padding: 2px 7px;
           border-radius: 999px;
           letter-spacing: 0.3px;
         }
@@ -968,9 +976,93 @@
         }
 
         .verdict-rationale {
-          font-size: 10px;
+          font-size: 11px;
           color: #cbd5e1;
-          line-height: 1.35;
+          line-height: 1.4;
+        }
+
+        .technical-collapsible {
+          margin-top: 6px;
+          border: 1px solid #2d3748;
+          border-radius: 8px;
+          background: #151d2f;
+          overflow: hidden;
+          transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .technical-collapsible[open] {
+          border-color: #4b5563;
+          background: #141c2e;
+        }
+
+        .technical-summary {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 8px 10px;
+          cursor: pointer;
+          user-select: none;
+          list-style: none;
+          font-size: 11px;
+          font-weight: 700;
+          color: #93c5fd;
+          background: rgba(30, 58, 138, 0.2);
+          transition: background 0.15s ease;
+        }
+
+        .technical-summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .technical-summary:hover {
+          background: rgba(30, 58, 138, 0.35);
+          color: #bfdbfe;
+        }
+
+        .technical-summary-title {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          letter-spacing: 0.2px;
+        }
+
+        .technical-chevron {
+          font-size: 10px;
+          transition: transform 0.2s ease;
+          color: #9ca3af;
+        }
+
+        .technical-collapsible[open] .technical-chevron {
+          transform: rotate(180deg);
+          color: #60a5fa;
+        }
+
+        .technical-content {
+          padding: 8px 10px;
+          border-top: 1px solid #1f2937;
+          background: #0f172a;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .audit-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 8px;
+        }
+
+        .row-tag {
+          color: #9ca3af;
+          font-weight: 500;
+          min-width: 100px;
+        }
+
+        .row-info {
+          font-weight: 600;
+          text-align: right;
+          color: #f3f4f6;
         }
 
         .drawer-footer {

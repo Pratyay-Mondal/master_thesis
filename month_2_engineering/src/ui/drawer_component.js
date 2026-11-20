@@ -57,14 +57,14 @@
      * @param {number} [margin=8]
      * @returns {{ top: number, left: number, isOffscreen: boolean }}
      */
-    static computePosition(triggerRect, drawerDims = { width: 348, height: 380 }, viewport = null, margin = 8) {
+    static computePosition(triggerRect, drawerDims = { width: 440, height: 420 }, viewport = null, margin = 8) {
       const vp = viewport || {
         width: typeof window !== 'undefined' && window.innerWidth ? window.innerWidth : 1024,
         height: typeof window !== 'undefined' && window.innerHeight ? window.innerHeight : 768
       };
 
-      const dWidth = Math.min(drawerDims.width || 348, Math.max(200, vp.width - margin * 2));
-      const dHeight = drawerDims.height || 380;
+      const dWidth = Math.min(drawerDims.width || 440, Math.max(200, vp.width - margin * 2));
+      const dHeight = drawerDims.height || 420;
 
       // Horizontal coordinate: align to trigger left, clamp within viewport edges
       let left = triggerRect.left;
@@ -258,8 +258,8 @@
 
       const panel = this._shadow ? this._shadow.querySelector('.drawer-panel') : null;
       const drawerDims = {
-        width: (panel && panel.offsetWidth) || this.offsetWidth || 348,
-        height: (panel && panel.offsetHeight) || this.offsetHeight || 380
+        width: (panel && panel.offsetWidth) || this.offsetWidth || 440,
+        height: (panel && panel.offsetHeight) || this.offsetHeight || 420
       };
 
       const coords = AiAuditDrawer.computePosition(triggerRect, drawerDims);
@@ -384,13 +384,13 @@
           }
 
           .drawer-panel {
-            width: 348px;
-            max-width: calc(100vw - 20px);
+            width: 440px;
+            max-width: min(440px, calc(100vw - 20px));
             max-height: calc(100vh - 20px);
             background: #111827;
             border: 1px solid #374151;
-            border-radius: 10px;
-            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
             overflow-y: auto;
             overflow-x: hidden;
             animation: slideFadeIn 0.16s ease-out;
@@ -412,14 +412,14 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 14px;
+            padding: 12px 16px;
             background: #1f2937;
             border-bottom: 1px solid #374151;
           }
 
           .drawer-title {
             font-weight: 700;
-            font-size: 12px;
+            font-size: 13px;
             letter-spacing: 0.2px;
             color: #f9fafb;
           }
@@ -428,7 +428,7 @@
             background: transparent;
             border: none;
             color: #9ca3af;
-            font-size: 18px;
+            font-size: 20px;
             line-height: 1;
             cursor: pointer;
             padding: 0 4px;
@@ -439,66 +439,49 @@
           }
 
           .drawer-section {
-            padding: 10px 14px;
+            padding: 12px 16px;
             border-bottom: 1px solid #1f2937;
           }
 
           .section-heading {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.6px;
             color: #9ca3af;
-            margin-bottom: 8px;
-          }
-
-          .signal-grid {
-            display: grid;
-            grid-template-columns: 112px 1fr;
-            gap: 5px 8px;
-            font-size: 11px;
-          }
-
-          .signal-label {
-            color: #9ca3af;
-            font-weight: 600;
-          }
-
-          .signal-value {
-            color: #e5e7eb;
-            word-break: break-word;
+            margin-bottom: 10px;
           }
 
           .verdict-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
           }
 
           .verdict-card {
             background: #1a2234;
             border: 1px solid #2d3748;
-            border-radius: 6px;
-            padding: 7px 9px;
+            border-radius: 8px;
+            padding: 9px 12px;
           }
 
           .verdict-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
           }
 
           .verdict-article {
             font-weight: 700;
-            font-size: 11px;
+            font-size: 12px;
             color: #f9fafb;
           }
 
           .verdict-pill {
             font-size: 10px;
             font-weight: 700;
-            padding: 1px 7px;
+            padding: 2px 8px;
             border-radius: 999px;
             letter-spacing: 0.3px;
           }
@@ -522,12 +505,92 @@
           }
 
           .verdict-rationale {
-            font-size: 11px;
+            font-size: 11.5px;
+            line-height: 1.45;
             color: #cbd5e1;
           }
 
+          .technical-collapsible {
+            margin-top: 10px;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            background: #151d2f;
+            overflow: hidden;
+            transition: border-color 0.2s ease, background 0.2s ease;
+          }
+
+          .technical-collapsible[open] {
+            border-color: #4b5563;
+            background: #141c2e;
+          }
+
+          .technical-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 12px;
+            cursor: pointer;
+            user-select: none;
+            list-style: none;
+            font-size: 11px;
+            font-weight: 700;
+            color: #93c5fd;
+            background: rgba(30, 58, 138, 0.2);
+            transition: background 0.15s ease;
+          }
+
+          .technical-summary::-webkit-details-marker {
+            display: none;
+          }
+
+          .technical-summary:hover {
+            background: rgba(30, 58, 138, 0.35);
+            color: #bfdbfe;
+          }
+
+          .technical-summary-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.2px;
+          }
+
+          .technical-chevron {
+            font-size: 10px;
+            transition: transform 0.2s ease;
+            color: #9ca3af;
+          }
+
+          .technical-collapsible[open] .technical-chevron {
+            transform: rotate(180deg);
+            color: #60a5fa;
+          }
+
+          .technical-content {
+            padding: 10px 12px;
+            border-top: 1px solid #1f2937;
+            background: #0f172a;
+          }
+
+          .signal-grid {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            gap: 6px 10px;
+            font-size: 11px;
+          }
+
+          .signal-label {
+            color: #9ca3af;
+            font-weight: 600;
+          }
+
+          .signal-value {
+            color: #e5e7eb;
+            word-break: break-word;
+          }
+
           .drawer-footer {
-            padding: 7px 14px;
+            padding: 8px 16px;
             background: #0f172a;
             color: #64748b;
             font-size: 10px;
@@ -537,28 +600,8 @@
 
         <div class="drawer-panel" role="dialog" aria-label="EU AI Act Article 50 Provenance Audit">
           <div class="drawer-header">
-            <span class="drawer-title">EU AI Act Article 50 Audit</span>
+            <span class="drawer-title">EU AI Act Transparency Check</span>
             <button class="drawer-close" type="button" aria-label="Close audit panel">&times;</button>
-          </div>
-
-          <div class="drawer-section">
-            <div class="section-heading">Technical Provenance Signals</div>
-            <div class="signal-grid">
-              <span class="signal-label">C2PA Manifest:</span>
-              <span class="signal-value">${escapeHtml(c2paDisplay)}${img.claimGenerator ? ` (${escapeHtml(img.claimGenerator)})` : ''}</span>
-
-              <span class="signal-label">Platform Label:</span>
-              <span class="signal-value">${data?.platformLabelPresent ? 'Detected ("Made with AI")' : 'None detected'}</span>
-
-              <span class="signal-label">Token Count:</span>
-              <span class="signal-value">${escapeHtml(tokenDisplay)}</span>
-
-              <span class="signal-label">Entropy Gate:</span>
-              <span class="signal-value">${escapeHtml(entropyGateDisplay)}</span>
-
-              <span class="signal-label">SynthID z-Score:</span>
-              <span class="signal-value">${escapeHtml(zDisplay)}</span>
-            </div>
           </div>
 
           <div class="drawer-section">
@@ -566,7 +609,7 @@
             <div class="verdict-list">
               <div class="verdict-card">
                 <div class="verdict-header">
-                  <span class="verdict-article">Art. 50(2) · Provider Marking</span>
+                  <span class="verdict-article">Art. 50(2) · AI Creator Marking</span>
                   <span class="verdict-pill ${verdictBadgeClass(art50_2.status)}">${escapeHtml(art50_2.status)}</span>
                 </div>
                 <div class="verdict-rationale">${escapeHtml(art50_2.rationale)}</div>
@@ -574,7 +617,7 @@
 
               <div class="verdict-card">
                 <div class="verdict-header">
-                  <span class="verdict-article">Art. 50(4) · Deployer Disclosure</span>
+                  <span class="verdict-article">Art. 50(4) · Publisher Disclosure</span>
                   <span class="verdict-pill ${verdictBadgeClass(art50_4.status)}">${escapeHtml(art50_4.status)}</span>
                 </div>
                 <div class="verdict-rationale">${escapeHtml(art50_4.rationale)}</div>
@@ -582,12 +625,37 @@
 
               <div class="verdict-card">
                 <div class="verdict-header">
-                  <span class="verdict-article">Art. 50(5) · User Visibility</span>
+                  <span class="verdict-article">Art. 50(5) · Clear User Visibility</span>
                   <span class="verdict-pill ${verdictBadgeClass(art50_5.status)}">${escapeHtml(art50_5.status)}</span>
                 </div>
                 <div class="verdict-rationale">${escapeHtml(art50_5.rationale)}</div>
               </div>
             </div>
+
+            <details class="technical-collapsible">
+              <summary class="technical-summary">
+                <span class="technical-summary-title">⚙️ Technical Diagnostics · For AI Engineers</span>
+                <span class="technical-chevron">▼</span>
+              </summary>
+              <div class="technical-content">
+                <div class="signal-grid">
+                  <span class="signal-label">C2PA Manifest:</span>
+                  <span class="signal-value">${escapeHtml(c2paDisplay)}${img.claimGenerator ? ` (${escapeHtml(img.claimGenerator)})` : ''}</span>
+
+                  <span class="signal-label">Platform Label:</span>
+                  <span class="signal-value">${data?.platformLabelPresent ? 'Detected ("Made with AI" / "AI info")' : 'None detected'}</span>
+
+                  <span class="signal-label">Token Count:</span>
+                  <span class="signal-value">${escapeHtml(tokenDisplay)}</span>
+
+                  <span class="signal-label">Entropy Gate:</span>
+                  <span class="signal-value">${escapeHtml(entropyGateDisplay)}</span>
+
+                  <span class="signal-label">SynthID z-Score:</span>
+                  <span class="signal-value">${escapeHtml(zDisplay)}</span>
+                </div>
+              </div>
+            </details>
           </div>
 
           <div class="drawer-footer">
@@ -601,6 +669,31 @@
         panel.addEventListener('pointerdown', (e) => e.stopPropagation());
         panel.addEventListener('mousedown', (e) => e.stopPropagation());
         panel.addEventListener('click', (e) => e.stopPropagation());
+      }
+
+      const techDetails = this._shadow.querySelector('.technical-collapsible');
+      if (techDetails) {
+        techDetails.addEventListener('mouseenter', () => {
+          if (!techDetails.hasAttribute('data-pinned')) {
+            techDetails.open = true;
+          }
+        });
+        techDetails.addEventListener('mouseleave', () => {
+          if (!techDetails.hasAttribute('data-pinned')) {
+            techDetails.open = false;
+          }
+        });
+        const summary = techDetails.querySelector('.technical-summary');
+        if (summary) {
+          summary.addEventListener('click', () => {
+            if (techDetails.hasAttribute('data-pinned')) {
+              techDetails.removeAttribute('data-pinned');
+            } else {
+              techDetails.setAttribute('data-pinned', 'true');
+              techDetails.open = true;
+            }
+          });
+        }
       }
 
       const closeBtn = this._shadow.querySelector('.drawer-close');

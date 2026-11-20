@@ -97,7 +97,7 @@ test('Web Components: <ai-transparency-badge> & <ai-audit-drawer> Structure (FR-
     assert.ok(BadgeComponent.PILL_THEMES.SCANNING);
   });
 
-  await t.test('AiAuditDrawer renders technical signals & Article 50 verdicts into Shadow DOM', () => {
+  await t.test('AiAuditDrawer renders reversed hierarchy with plain English verdicts at top and technical diagnostics collapsible at bottom', () => {
     const fakeShadow = {
       innerHTML: '',
       querySelector: () => null
@@ -114,10 +114,54 @@ test('Web Components: <ai-transparency-badge> & <ai-audit-drawer> Structure (FR-
 
     assert.ok(fakeShadow.innerHTML.includes('65 est. tokens'));
     assert.ok(fakeShadow.innerHTML.includes('z = 3.850'));
-    assert.ok(fakeShadow.innerHTML.includes('Art. 50(2)'));
-    assert.ok(fakeShadow.innerHTML.includes('Art. 50(4)'));
-    assert.ok(fakeShadow.innerHTML.includes('Art. 50(5)'));
+    assert.ok(fakeShadow.innerHTML.includes('Art. 50(2) · AI Creator Marking'));
+    assert.ok(fakeShadow.innerHTML.includes('Art. 50(4) · Publisher Disclosure'));
+    assert.ok(fakeShadow.innerHTML.includes('Art. 50(5) · Clear User Visibility'));
     assert.ok(fakeShadow.innerHTML.includes('COMPLIANT'));
+    assert.ok(fakeShadow.innerHTML.includes('technical-collapsible'));
+
+    // Hierarchy test: Legal Compliance Verdicts MUST appear BEFORE Technical Diagnostics
+    const legalIndex = fakeShadow.innerHTML.indexOf('Legal Compliance Verdicts');
+    const techIndex = fakeShadow.innerHTML.indexOf('Technical Diagnostics · For AI Engineers');
+    assert.ok(legalIndex !== -1, 'Legal Compliance Verdicts section must be present');
+    assert.ok(techIndex !== -1, 'Technical Diagnostics section must be present');
+    assert.ok(legalIndex < techIndex, 'Legal Compliance Verdicts must appear at TOP, above Technical Diagnostics');
+  });
+
+  await t.test('AiTransparencyBadge resolves simplified, jargon-free pill labels without raw stats', () => {
+    const badge = new BadgeComponent();
+
+    // 1. Undisclosed AI: returns clean label without raw z-score
+    badge.complianceData = ComplianceEngine.evaluateCompliance(
+      null,
+      { status: 'WATERMARK_DETECTED', tokenCount: 75, zScore: 4.8, pValue: 0.000001, isWatermarked: true },
+      false
+    );
+    assert.equal(badge.resolvePillLabel('UNDISCLOSED_AI'), '🔴 Undisclosed AI');
+
+    // 2. Verified AI (C2PA): returns clean verified label
+    badge.complianceData = ComplianceEngine.evaluateCompliance(
+      { c2paStatus: 'VALID', platformLabel: true },
+      null,
+      true
+    );
+    assert.equal(badge.resolvePillLabel('VERIFIED'), '🟢 Verified (C2PA)');
+
+    // 3. Platform Tagged: clean label
+    badge.complianceData = ComplianceEngine.evaluateCompliance(
+      { c2paStatus: 'STRIPPED', platformLabel: true },
+      null,
+      true
+    );
+    assert.equal(badge.resolvePillLabel('PLATFORM_TAGGED'), '🟡 Platform Tagged');
+
+    // 4. Micro-span / Insufficient length: returns human-friendly "Unverifiable" without token count
+    badge.complianceData = ComplianceEngine.evaluateCompliance(
+      null,
+      { status: 'INSUFFICIENT_LENGTH', tokenCount: 15, zScore: null, isWatermarked: false },
+      false
+    );
+    assert.equal(badge.resolvePillLabel('NO_SIGNAL'), '⚪ Unverifiable');
   });
 });
 

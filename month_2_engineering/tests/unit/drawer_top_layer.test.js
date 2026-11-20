@@ -77,6 +77,17 @@ test('Top Layer Audit Drawer: Viewport Coordinate Clamping', async (t) => {
 
     assert.deepEqual(drawerPos, injectorPos);
   });
+
+  await t.test('computePosition defaults to 440px width and 420px height for enlarged audit drawer', () => {
+    // When trigger is at left=1000 in a 1280px wide viewport with default dimensions (width: 440):
+    // 1000 + 440 = 1440 > 1280 - 8 (1272)
+    // Left clamps to: 1280 - 440 - 8 = 832
+    const triggerRect = { top: 100, bottom: 128, left: 1000, right: 1150 };
+    const pos = DrawerComponent.computePosition(triggerRect, undefined, viewport);
+
+    assert.equal(pos.top, 134); // 128 + 6
+    assert.equal(pos.left, 832); // clamped based on 440px width!
+  });
 });
 
 test('Event Isolation: Shadow DOM composedPath() & Click Dismissal', async (t) => {

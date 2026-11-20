@@ -32,23 +32,75 @@
 
   class PlatformAdapters {
     /**
-     * Determines the active social media platform based on window.location.
-     * Also detects local mock HTML files (e.g. facebook_mock.html).
+     * Determines the active social media platform based on window.location or document.body dataset.
+     * Prioritizes explicit body dataset (data-platform="instagram|facebook|whatsapp")
+     * and URL pathnames for local mock testing on localhost/file://.
+     *
      * @returns {string} One of PLATFORMS enum
      */
     static detectPlatform() {
-      const href = (window.location.href || '').toLowerCase();
-      const host = (window.location.hostname || '').toLowerCase();
-
-      if (host.includes('facebook.com') || href.includes('facebook_mock')) {
-        return PLATFORMS.FACEBOOK;
+      // 1. Check explicit DOM override on body (useful for mock pages & test harnesses)
+      if (typeof document !== 'undefined' && document.body && document.body.dataset && document.body.dataset.platform) {
+        const bodyPlatform = String(document.body.dataset.platform).toLowerCase().trim();
+        if (bodyPlatform === 'instagram' || bodyPlatform === PLATFORMS.INSTAGRAM) {
+          return PLATFORMS.INSTAGRAM;
+        }
+        if (bodyPlatform === 'facebook' || bodyPlatform === PLATFORMS.FACEBOOK) {
+          return PLATFORMS.FACEBOOK;
+        }
+        if (bodyPlatform === 'whatsapp' || bodyPlatform === PLATFORMS.WHATSAPP) {
+          return PLATFORMS.WHATSAPP;
+        }
       }
-      if (host.includes('instagram.com') || href.includes('instagram_mock')) {
+
+      // 2. Inspect window.location attributes
+      const loc = typeof window !== 'undefined' && window.location ? window.location : null;
+      const href = (loc?.href || '').toLowerCase();
+      const host = (loc?.hostname || '').toLowerCase();
+      const pathname = (loc?.pathname || '').toLowerCase();
+
+      // Check Instagram: live domain, pathname, or mock URL
+      if (
+        host.includes('instagram.com') ||
+        pathname.includes('instagram') ||
+        href.includes('instagram_mock') ||
+        href.includes('instagram')
+      ) {
         return PLATFORMS.INSTAGRAM;
       }
-      if (host.includes('whatsapp.com') || href.includes('whatsapp_mock')) {
+
+      // Check Facebook: live domain, pathname, or mock URL
+      if (
+        host.includes('facebook.com') ||
+        pathname.includes('facebook') ||
+        href.includes('facebook_mock') ||
+        href.includes('facebook')
+      ) {
+        return PLATFORMS.FACEBOOK;
+      }
+
+      // Check WhatsApp: live domain, pathname, or mock URL
+      if (
+        host.includes('whatsapp.com') ||
+        pathname.includes('whatsapp') ||
+        href.includes('whatsapp_mock') ||
+        href.includes('whatsapp')
+      ) {
         return PLATFORMS.WHATSAPP;
       }
+
+      // 3. Fallback for localhost, 127.0.0.1, or local file URLs with unspecified path
+      if (host === 'localhost' || host === '127.0.0.1' || host === '' || href.startsWith('file:')) {
+        if (pathname.includes('instagram') || href.includes('instagram')) {
+          return PLATFORMS.INSTAGRAM;
+        }
+        if (pathname.includes('whatsapp') || href.includes('whatsapp')) {
+          return PLATFORMS.WHATSAPP;
+        }
+        // Default to Facebook on bare localhost if no platform is specified
+        return PLATFORMS.FACEBOOK;
+      }
+
       return PLATFORMS.UNKNOWN;
     }
 

@@ -134,15 +134,15 @@
     }
   </style>
 </head>
-<body>
+<body data-platform="instagram">
   <div class="demo-banner">
     <h1>EU AI Act Article 50 Evaluation Testbed (Instagram Feed)</h1>
     <p>Demonstrating all four transparency compliance pill states (🟢 Verified, 🟡 Platform Tagged, 🔴 Undisclosed AI, ⚪ No Signal) across Instagram feed elements.</p>
   </div>
 
-  <main>
+  <main role="main">
     <!-- Post A: 🟢 VERIFIED AI PROVENANCE (Watermarked SynthID Text + "AI info" sub-header) -->
-    <article>
+    <article role="presentation">
       <header>
         <div class="user-block">
           <div class="avatar-ring">
@@ -170,7 +170,7 @@
     </article>
 
     <!-- Post B: 🟡 PLATFORM TAGGED (Platform Ingestion Trap: Stripped C2PA Image + "KI-Info" label) -->
-    <article>
+    <article role="presentation">
       <header>
         <div class="user-block">
           <div class="avatar-ring">
@@ -198,7 +198,7 @@
     </article>
 
     <!-- Post C: 🔴 UNDISCLOSED AI (Watermarked Text >60 tokens, z > 3.0, but NO platform disclosure) -->
-    <article>
+    <article role="presentation">
       <header>
         <div class="user-block">
           <div class="avatar-ring">
@@ -226,7 +226,7 @@
     </article>
 
     <!-- Post D: ⚪ NO SIGNAL / MICRO-SPAN (Short human caption <50 tokens, authentic photo) -->
-    <article>
+    <article role="presentation">
       <header>
         <div class="user-block">
           <div class="avatar-ring">

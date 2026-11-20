@@ -35,6 +35,23 @@ test('Platform Detection Strategy', async (t) => {
     assert.equal(PlatformAdapters.detectPlatform(), PLATFORMS.INSTAGRAM);
   });
 
+  await t.test('detects platform from document.body.dataset.platform override', () => {
+    globalThis.document = { body: { dataset: { platform: 'instagram' } } };
+    globalThis.window = { location: { hostname: 'localhost', href: 'http://localhost:3000' } };
+    assert.equal(PlatformAdapters.detectPlatform(), PLATFORMS.INSTAGRAM);
+    delete globalThis.document;
+  });
+
+  await t.test('detects Instagram on localhost from pathname', () => {
+    globalThis.window = { location: { hostname: 'localhost', pathname: '/mock_pages/instagram_mock.html', href: 'http://localhost:8080/mock_pages/instagram_mock.html' } };
+    assert.equal(PlatformAdapters.detectPlatform(), PLATFORMS.INSTAGRAM);
+  });
+
+  await t.test('falls back to Facebook on bare localhost when path is generic', () => {
+    globalThis.window = { location: { hostname: 'localhost', pathname: '/', href: 'http://localhost:3000/' } };
+    assert.equal(PlatformAdapters.detectPlatform(), PLATFORMS.FACEBOOK);
+  });
+
   await t.test('detects WhatsApp from hostname', () => {
     globalThis.window = { location: { hostname: 'web.whatsapp.com', href: 'https://web.whatsapp.com' } };
     assert.equal(PlatformAdapters.detectPlatform(), PLATFORMS.WHATSAPP);

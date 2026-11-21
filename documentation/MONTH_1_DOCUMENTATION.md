@@ -164,7 +164,7 @@ Detection requires zero knowledge of the original prompt or model weights. Given
 ### 4.3 Robustness Battery Across 13 Social Media Transformations
 The test harness [`docs/month_1/scripts/text_robustness_test.py`](file:///Users/pratyay/Documents/THWS/thesis/docs/month_1/scripts/text_robustness_test.py) evaluated watermark survivability across 13 distinct lexical, typographical, and structural transformations:
 
-| Condition Name | Applied Perturbation / Transformation | Scored $T$ | Green $|s|_G$ | Green Ratio $\hat{\gamma}$ | $z$-Score | $p$-Value | Regulatory Verdict ($z > 3.0$) |
+| Condition Name | Applied Perturbation / Transformation | Scored $T$ | Green $\vert s \vert_G$ | Green Ratio $\hat{\gamma}$ | $z$-Score | $p$-Value | Regulatory Verdict ($z > 3.0$) |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---|
 | `human_control` | Unwatermarked human text (Negative Control) | 165 | 78 | 0.4727 | **-0.70** | $7.58 \times 10^{-1}$ | ❌ **Null-Consistent (Unflagged)** |
 | `watermarked_source`| Unmodified watermarked generation (Positive Control)| 262 | 241 | 0.9198 | **+13.59** | $2.24 \times 10^{-42}$ | ✅ **Detected (Strong Pass)** |

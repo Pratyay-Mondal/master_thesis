@@ -25,6 +25,8 @@ import math
 import argparse
 from datetime import datetime
 
+os.environ.setdefault('MPLCONFIGDIR', '/tmp/matplotlib_cache')
+
 # Graceful optional imports for visualizations
 try:
     import matplotlib
@@ -462,8 +464,13 @@ def main():
     print(f"[*] Discovered {len(files)} log file(s) with {len(records)} total telemetry record(s).")
 
     # Partition into Experiment A (Mocks) and Experiment B (Live Feeds)
-    mock_records = [r for r in records if r.get('isMock') is True or 'mock' in r.get('_source_file', '').lower()]
-    live_records = [r for r in records if r.get('isMock') is False and 'mock' not in r.get('_source_file', '').lower()]
+    def is_mock(r):
+        if 'isMock' in r and isinstance(r['isMock'], bool):
+            return r['isMock']
+        return 'mock' in r.get('_source_file', '').lower()
+
+    mock_records = [r for r in records if is_mock(r)]
+    live_records = [r for r in records if not is_mock(r)]
 
     print(f"[*] Classified {len(mock_records)} Experiment A (Mock) record(s) and {len(live_records)} Experiment B (Live) record(s).")
 

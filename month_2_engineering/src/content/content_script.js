@@ -31,6 +31,11 @@
 
   const PREFIX = '[AI-Transparency-Validator]';
 
+  // Global audit session log for empirical evaluation (GDPR Article 5(1)(c) data-minimised telemetry)
+  if (typeof window !== 'undefined') {
+    window.__AI_VALIDATOR_AUDIT_LOG__ = window.__AI_VALIDATOR_AUDIT_LOG__ || [];
+  }
+
   class ContentScriptCoordinator {
     constructor() {
       this.platform = Adapters.detectPlatform();
@@ -257,6 +262,7 @@
       if (!this.checkContextOrTeardown()) return;
       this.processedCount++;
       const id = this.processedCount;
+      const startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
 
       console.log(`${PREFIX} [Process] Post #${id} is now VISIBLE in viewport.`);
 
@@ -314,6 +320,41 @@
             `${PREFIX} [FR-03/04] Post #${id} Verdict [${complianceVerdict.overallState}]:`,
             complianceVerdict
           );
+
+          // 6. Record anonymized session telemetry (GDPR Art. 5(1)(c) compliant - no PII, URLs, or post text)
+          const processingTimeMs = Math.round(
+            ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - startTime
+          );
+
+          const isMock = typeof window !== 'undefined' && (
+            window.location.protocol === 'file:' ||
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1' ||
+            (window.location.pathname && window.location.pathname.includes('_mock.html'))
+          );
+
+          const auditRecord = {
+            timestamp: new Date().toISOString(),
+            platform: this.platform,
+            isMock: Boolean(isMock),
+            postIndex: id,
+            c2paStatus: imageAudit?.c2paStatus || 'NONE',
+            platformLabel: Boolean(hasNativeLabel),
+            tokenCount: typeof textAudit?.tokenCount === 'number' ? textAudit.tokenCount : 0,
+            entropyH2: typeof textAudit?.entropy === 'number' ? Number(textAudit.entropy.toFixed(3)) : null,
+            entropyGated: Boolean(textAudit?.status === 'LOW_ENTROPY' || textAudit?.status === 'INSUFFICIENT_LENGTH'),
+            zScore: typeof textAudit?.zScore === 'number' ? Number(textAudit.zScore.toFixed(3)) : null,
+            badgeVerdict: complianceVerdict.overallState,
+            art50_2: complianceVerdict.articles?.article50_2?.status || 'UNKNOWN',
+            art50_4: complianceVerdict.articles?.article50_4?.status || 'UNKNOWN',
+            art50_5: complianceVerdict.articles?.article50_5?.status || 'UNKNOWN',
+            processingTimeMs
+          };
+
+          if (typeof window !== 'undefined') {
+            window.__AI_VALIDATOR_AUDIT_LOG__ = window.__AI_VALIDATOR_AUDIT_LOG__ || [];
+            window.__AI_VALIDATOR_AUDIT_LOG__.push(auditRecord);
+          }
         } else {
           // Legacy fallback if ComplianceEngine is unavailable
           const fallbackShadow = Injector.injectBadge(anchor, this.resolveCombinedBadgeState({

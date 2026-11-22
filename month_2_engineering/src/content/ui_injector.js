@@ -297,6 +297,36 @@
     }
 
     /**
+     * One-click session audit log exporter for empirical evaluation.
+     */
+    static exportSessionAuditLog() {
+      const win = typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : null);
+      if (!win) return;
+      const logs = win.__AI_VALIDATOR_AUDIT_LOG__ || [];
+      const platform = (logs.length > 0 && logs[0].platform) ? logs[0].platform : 'meta_session';
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `audit_log_${platform}_${timestamp}.json`;
+
+      const jsonStr = JSON.stringify(logs, null, 2);
+      if (typeof document !== 'undefined' && document.createElement) {
+        const blob = (typeof Blob !== 'undefined') ? new Blob([jsonStr], { type: 'application/json' }) : null;
+        const url = blob && typeof URL !== 'undefined' && URL.createObjectURL
+          ? URL.createObjectURL(blob)
+          : 'data:text/json;charset=utf-8,' + encodeURIComponent(jsonStr);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        (document.body || document.documentElement).appendChild(a);
+        a.click();
+        a.remove();
+        if (blob && typeof URL !== 'undefined' && URL.revokeObjectURL) {
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+      }
+    }
+
+    /**
      * Calculates clamped viewport coordinates (top, left) ensuring the drawer
      * renders cleanly beside/below its trigger button without overflowing the viewport.
      */
@@ -465,13 +495,25 @@
             </details>
           </div>
           <div class="drawer-footer">
-            THWS Master's Thesis Prototype · Client-Side Provenance Validator
+            <span class="drawer-footer-text">THWS Master's Thesis Prototype · Client-Side Provenance Validator</span>
+            <button class="export-log-btn" type="button" title="Export session audit logs as JSON for empirical evaluation">
+              📥 Export Session JSON
+            </button>
           </div>
         `;
 
         drawer.addEventListener('pointerdown', (e) => e.stopPropagation());
         drawer.addEventListener('mousedown', (e) => e.stopPropagation());
         drawer.addEventListener('click', (e) => e.stopPropagation());
+
+        const exportBtn = drawer.querySelector('.export-log-btn');
+        if (exportBtn) {
+          exportBtn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            UIInjector.exportSessionAuditLog();
+          };
+        }
 
         const techDetails = drawer.querySelector('.technical-collapsible');
         if (techDetails) {
@@ -1071,7 +1113,33 @@
           border-top: 1px solid #1f2937;
           font-size: 9px;
           color: #6b7280;
-          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
+
+        .drawer-footer-text {
+          flex: 1;
+          text-align: left;
+        }
+
+        .export-log-btn {
+          background: #1e293b;
+          color: #93c5fd;
+          border: 1px solid #3b82f6;
+          border-radius: 4px;
+          padding: 2px 6px;
+          font-size: 9px;
+          font-weight: 600;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .export-log-btn:hover {
+          background: #2563eb;
+          color: #ffffff;
         }
       `;
     }

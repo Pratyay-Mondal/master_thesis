@@ -413,3 +413,4 @@ Open the following URLs in Chrome:
 - `http://localhost:8080/whatsapp_mock.html`
 
 The extension will automatically detect the platform, discover the candidate posts, evaluate multimodal provenance, mount the pill badges, and render the $440\text{px}$ audit drawer upon clicking any pill badge.
+

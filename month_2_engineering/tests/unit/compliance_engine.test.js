@@ -119,6 +119,8 @@ test('Web Components: <ai-transparency-badge> & <ai-audit-drawer> Structure (FR-
     assert.ok(fakeShadow.innerHTML.includes('Art. 50(5) · Clear User Visibility'));
     assert.ok(fakeShadow.innerHTML.includes('COMPLIANT'));
     assert.ok(fakeShadow.innerHTML.includes('technical-collapsible'));
+    assert.ok(fakeShadow.innerHTML.includes('Export Session JSON'));
+    assert.equal(typeof DrawerComponent.exportSessionAuditLog, 'function');
 
     // Hierarchy test: Legal Compliance Verdicts MUST appear BEFORE Technical Diagnostics
     const legalIndex = fakeShadow.innerHTML.indexOf('Legal Compliance Verdicts');

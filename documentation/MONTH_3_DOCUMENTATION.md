@@ -39,7 +39,7 @@ Consequently, **Month 3 of execution directly advances to Proposal Month 5 ("Emp
 1. **Experiment A (Controlled Ground-Truth Accuracy):**  
    Empirically validate multi-modal classification precision, recall, and F1 score against known ground-truth states across local deterministic testbeds (`facebook_mock.html`, `instagram_mock.html`, `whatsapp_mock.html`).
 2. **Experiment B (In-the-Wild Meta Ecosystem Field Audit):**  
-   Measure real-world transparency dynamics in consumer feeds across $N = 90$ live public social media posts (30 Facebook, 30 Instagram, 30 WhatsApp Web), quantifying:
+   Measure real-world transparency dynamics in consumer feeds across $N = 144$ live public social media posts/messages (32 Facebook, 38 Instagram, 74 WhatsApp Web), quantifying:
    - Real-world C2PA manifest stripping rates on Meta CDNs.
    - Frequency of native platform disclosure labels (`"AI info"`, `"KI-Info"`, `"Made with AI"`).
    - Frequency of the $<50$-token statistical watermarking dead zone.
@@ -86,9 +86,9 @@ To enable friction-free data collection without compromising user privacy or vio
 │  • audit_log_facebook_mock.json                                        │
 │  • audit_log_instagram_mock.json                                       │
 │  • audit_log_whatsapp_mock.json                                        │
-│  • audit_log_facebook_live.json (N=30)                                 │
-│  • audit_log_instagram_live.json (N=30)                                │
-│  • audit_log_whatsapp_live.json (N=30)                                 │
+│  • audit_log_facebook_live.json (N=32)                                 │
+│  • audit_log_instagram_live.json (N=38)                                │
+│  • audit_log_whatsapp_live.json (N=74)                                 │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │ python3 scripts/analyze_audit_logs.py
                                     ▼
@@ -96,8 +96,9 @@ To enable friction-free data collection without compromising user privacy or vio
 │        AUTOMATED REPORT GENERATION (month_3_evaluation/results/)       │
 │                                                                        │
 │  • EMPIRICAL_SUMMARY.md (Tables for Thesis Chapter 4)                  │
-│  • verdict_distribution.png (Multi-Platform Stacked Distribution)      │
-│  • latency_by_platform.png (Latency SLAs vs. 200ms Budget)             │
+│  • fig1_verdict_distribution.png (Verdict Distribution Stacked Bar)     │
+│  • fig2_token_length_deadzone.png (Token Length & Dead Zone Boxplot)   │
+│  • fig3_processing_latency.png (Latency vs. 200ms Budget)               │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -237,11 +238,11 @@ Compiled from $N = 144$ real-world posts/messages across the Meta ecosystem:
 
 ### 5.5 Key Empirical Findings for Thesis Chapter 4
 1. **Container Ingestion Reality Confirmed (Zero In-the-Wild C2PA Survival):**  
-   Across all $N = 144$ real-world posts examined across Facebook, Instagram, and WhatsApp Web, exactly **zero** valid C2PA JUMBF manifests survived ($0.0\%$). On Instagram and WhatsApp media uploads, images scanned negative after undergoing aggressive CDN transcoding and re-encoding, permanently stripping the original provenance manifests. This confirms that relying exclusively on cryptographic container provenance creates a total blind spot on contemporary social networks.
+   Across all $N = 144$ real-world posts examined across Facebook, Instagram, and WhatsApp Web, exactly **zero** valid C2PA JUMBF manifests survived ($0.0\%$). Here, `C2PA None` ($68.06\%$, $98/144$) denotes text-only or non-image items where no candidate image was present to inspect. Crucially, across all items containing media images ($46$ items total: $38$ on Instagram, $8$ on WhatsApp Web), exactly **$46/46$ ($100.0\%$)** of audited live images had their C2PA manifests stripped by Meta CDN transcoding and WhatsApp recompression. This confirms that relying exclusively on cryptographic container provenance creates a total blind spot on contemporary social networks.
 2. **Platform Self-Labeling Scarcity:**  
    Zero audited posts ($0.0\%$) contained native platform disclosures (`"AI info"`, `"KI-Info"`). Deployers on public feeds routinely bypass or omit manual AI disclosure toggles, resulting in a systemic absence of transparency under Article 50(2) and 50(4) EU AI Act.
 3. **The Micro-Span Verification Gap ($75.7\%$ Dead Zone Prevalence):**  
-   Overall, **$75.69\%$ ($109 / 144$)** of audited captions contained fewer than $50$ tokens. On Instagram, $100.0\%$ of audited post captions were under $50$ tokens (median $14.5$ tokens), and on WhatsApp Web $79.7\%$ were under $50$ tokens (median $26.5$ tokens). This empirically validates the architectural decision to enforce entropy/token gating ($T \ge 50$ tokens, $H_2 \ge 3.0$ bits) and display `⚪ Unverifiable` rather than misleading 'Human' or 'Undetectable' labels.
+   Overall, **$75.69\%$ ($109 / 144$)** of audited captions contained fewer than $50$ tokens. By platform, caption lengths exhibited medians of $60$ tokens on Facebook ($37.5\%$ dead zone), $16$ tokens on Instagram ($100.0\%$ dead zone), and $26$ tokens on WhatsApp Web ($79.7\%$ dead zone). This empirically validates the architectural decision to enforce entropy/token gating ($T \ge 50$ tokens, $H_2 \ge 3.0$ bits) and display `⚪ Unverifiable` rather than misleading 'Human' or 'Undetectable' labels.
 4. **Strict Real-Time Performance Compliance (`NFR-02`):**  
    Across all 144 posts, mean processing latency was **$50.86\text{ ms}$** (median $6.0\text{ ms}$, $p_{95} = 187.0\text{ ms}$, max $192.0\text{ ms}$). All audits comfortably met the $< 200\text{ ms}$ real-time budget (`NFR-02`), ensuring zero frame drops during user scrolling.
 
@@ -282,7 +283,7 @@ python3 -m http.server 8080 --directory month_2_engineering/tests/mock_pages/
 #    Click any badge -> Click "📥 Export Session JSON" -> Move JSON to month_3_evaluation/raw_logs/
 
 # 3. Browse live platforms (Facebook, Instagram, WhatsApp Web):
-#    Scroll 30 posts -> Click any badge -> Click "📥 Export Session JSON" -> Move to month_3_evaluation/raw_logs/
+#    Scroll 30+ posts (e.g., 32 Facebook, 38 Instagram, 74 WhatsApp) -> Click any badge -> Click "📥 Export Session JSON" -> Move to month_3_evaluation/raw_logs/
 
 # 4. Run automated telemetry analysis and generate Chapter 4 report
 python3 month_3_evaluation/scripts/analyze_audit_logs.py

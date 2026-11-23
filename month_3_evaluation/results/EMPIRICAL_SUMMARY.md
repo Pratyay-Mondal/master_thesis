@@ -4,7 +4,7 @@
 **Author:** Pratyay Mondal · M.Sc. Artificial Intelligence  
 **Institution:** Faculty of Applied Computer Sciences and Humanities, Technical University of Applied Sciences Würzburg-Schweinfurt (THWS)  
 **Supervisors:** Prof. Dr. Markus Oermann (Primary Supervisor), Prof. Dr. Ivan Yamshchikov (Secondary Supervisor)  
-**Generated:** 2026-11-23 10:58:24 UTC  
+**Generated:** 2026-11-23 11:36:04 UTC  
 **Evaluation Phase:** Month 3 (Proposal Month 5: Empirical Robustness & Field Benchmarking)  
 **License:** Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)  
 
@@ -82,16 +82,16 @@ The empirical evaluation is divided into two rigorous scientific investigations:
 ## 4. Key Empirical Takeaways for Thesis Chapter 4
 
 1. **Container Ingestion Reality Confirmed (Zero In-the-Wild C2PA Survival):**  
-   Across all $N = 144$ real-world posts examined across Facebook, Instagram, and WhatsApp Web, exactly **zero** valid C2PA JUMBF manifests survived ($0.0\%$). On Instagram and WhatsApp media uploads, images scanned negative after undergoing aggressive CDN transcoding and re-encoding, permanently stripping the original provenance manifests. This confirms that relying exclusively on cryptographic container provenance creates a total blind spot on contemporary social networks.
+   Across all $N = 144$ real-world posts examined across Facebook, Instagram, and WhatsApp Web, exactly **zero** valid C2PA JUMBF manifests survived ($0.0\%$). Here, `C2PA None` ($68.06\%$, $98/144$) denotes text-only or non-image items where no candidate image was present to inspect. Crucially, across all items containing media images ($46$ items total: $38$ on Instagram, $8$ on WhatsApp Web), exactly **$46/46$ ($100.0\%$)** of audited live images had their C2PA manifests stripped by Meta CDN transcoding and WhatsApp recompression. This confirms that relying exclusively on cryptographic container provenance creates a total blind spot on contemporary social networks.
 
 2. **Platform Self-Labeling Scarcity:**  
    Zero audited posts ($0.0\%$) contained native platform disclosures (`"AI info"`, `"KI-Info"`). Deployers on public feeds routinely bypass or omit manual AI disclosure toggles, resulting in a systemic absence of transparency under Article 50(2) and 50(4) EU AI Act.
 
 3. **The Micro-Span Verification Gap ($75.7\%$ Dead Zone Prevalence):**  
-   Overall, **$75.69\%$ ($109 / 144$)** of audited captions contained fewer than $50$ tokens. On Instagram, $100.0\%$ of audited post captions were under $50$ tokens (median $14.5$ tokens), and on WhatsApp Web $79.7\%$ were under $50$ tokens (median $26.5$ tokens). This empirically validates the architectural decision to enforce entropy/token gating ($T \ge 50$ tokens, $H_2 \ge 3.0$ bits) and display `⚪ Unverifiable` rather than misleading 'Human' or 'Undetectable' labels.
+   Overall, **$75.69\%$ ($109 / 144$)** of audited captions contained fewer than $50$ tokens. By platform, caption lengths exhibited medians of $60$ tokens on Facebook ($37.5\%$ dead zone), $16$ tokens on Instagram ($100.0\%$ dead zone), and $26$ tokens on WhatsApp Web ($79.7\%$ dead zone). This empirically validates the architectural decision to enforce entropy/token gating ($T \ge 50$ tokens, $H_2 \ge 3.0$ bits) and display `⚪ Unverifiable` rather than misleading 'Human' or 'Undetectable' labels.
 
 4. **Strict Real-Time Performance Compliance (`NFR-02`):**  
-   Across all 144 posts, mean processing latency was **$50.85\text{ ms}$** (median $18.0\text{ ms}$, $p_{95} = 187.0\text{ ms}$, max $192.0\text{ ms}$). All audits comfortably met the $< 200\text{ ms}$ real-time budget (`NFR-02`), ensuring zero frame drops during user scrolling.
+   Across all 144 posts, mean processing latency was **$50.86\text{ ms}$** (median $6.0\text{ ms}$, $p_{95} = 187.0\text{ ms}$, max $192.0\text{ ms}$). All audits comfortably met the $< 200\text{ ms}$ real-time budget (`NFR-02`), ensuring zero frame drops during user scrolling.
 
 ---
 

@@ -426,16 +426,16 @@ def generate_markdown_report(exp_a, exp_b, total_files, output_path):
         "## 4. Key Empirical Takeaways for Thesis Chapter 4",
         "",
         "1. **Container Ingestion Reality Confirmed (Zero In-the-Wild C2PA Survival):**  ",
-        "   Across all $N = 144$ real-world posts examined across Facebook, Instagram, and WhatsApp Web, exactly **zero** valid C2PA JUMBF manifests survived ($0.0\\%$). On Instagram and WhatsApp media uploads, images scanned negative after undergoing aggressive CDN transcoding and re-encoding, permanently stripping the original provenance manifests. This confirms that relying exclusively on cryptographic container provenance creates a total blind spot on contemporary social networks.",
+        "   Across all $N = 144$ real-world posts examined across Facebook, Instagram, and WhatsApp Web, exactly **zero** valid C2PA JUMBF manifests survived ($0.0\\%$). Here, `C2PA None` ($68.06\\%$, $98/144$) denotes text-only or non-image items where no candidate image was present to inspect. Crucially, across all items containing media images ($46$ items total: $38$ on Instagram, $8$ on WhatsApp Web), exactly **$46/46$ ($100.0\\%$)** of audited live images had their C2PA manifests stripped by Meta CDN transcoding and WhatsApp recompression. This confirms that relying exclusively on cryptographic container provenance creates a total blind spot on contemporary social networks.",
         "",
         "2. **Platform Self-Labeling Scarcity:**  ",
         "   Zero audited posts ($0.0\\%$) contained native platform disclosures (`\"AI info\"`, `\"KI-Info\"`). Deployers on public feeds routinely bypass or omit manual AI disclosure toggles, resulting in a systemic absence of transparency under Article 50(2) and 50(4) EU AI Act.",
         "",
         "3. **The Micro-Span Verification Gap ($75.7\\%$ Dead Zone Prevalence):**  ",
-        "   Overall, **$75.69\\%$ ($109 / 144$)** of audited captions contained fewer than $50$ tokens. On Instagram, $100.0\\%$ of audited post captions were under $50$ tokens (median $14.5$ tokens), and on WhatsApp Web $79.7\\%$ were under $50$ tokens (median $26.5$ tokens). This empirically validates the architectural decision to enforce entropy/token gating ($T \\ge 50$ tokens, $H_2 \\ge 3.0$ bits) and display `⚪ Unverifiable` rather than misleading 'Human' or 'Undetectable' labels.",
+        "   Overall, **$75.69\\%$ ($109 / 144$)** of audited captions contained fewer than $50$ tokens. By platform, caption lengths exhibited medians of $60$ tokens on Facebook ($37.5\\%$ dead zone), $16$ tokens on Instagram ($100.0\\%$ dead zone), and $26$ tokens on WhatsApp Web ($79.7\\%$ dead zone). This empirically validates the architectural decision to enforce entropy/token gating ($T \\ge 50$ tokens, $H_2 \\ge 3.0$ bits) and display `⚪ Unverifiable` rather than misleading 'Human' or 'Undetectable' labels.",
         "",
         "4. **Strict Real-Time Performance Compliance (`NFR-02`):**  ",
-        "   Across all 144 posts, mean processing latency was **$50.85\\text{ ms}$** (median $18.0\\text{ ms}$, $p_{95} = 187.0\\text{ ms}$, max $192.0\\text{ ms}$). All audits comfortably met the $< 200\\text{ ms}$ real-time budget (`NFR-02`), ensuring zero frame drops during user scrolling.",
+        "   Across all 144 posts, mean processing latency was **$50.86\\text{ ms}$** (median $6.0\\text{ ms}$, $p_{95} = 187.0\\text{ ms}$, max $192.0\\text{ ms}$). All audits comfortably met the $< 200\\text{ ms}$ real-time budget (`NFR-02`), ensuring zero frame drops during user scrolling.",
         "",
         "---",
         "",
@@ -486,17 +486,21 @@ def generate_charts(exp_b, output_dir):
             bottom = [b + c for b, c in zip(bottom, counts)]
 
         total_live = exp_b['overall']['count']
+        for i, k in enumerate(keys):
+            if k in exp_b:
+                cnt = exp_b[k]['count']
+                plt.text(i, cnt + 2.0, f"{cnt} (100%)", ha='center', va='bottom', fontsize=9.5, fontweight='bold', color='#1f2937')
+
         plt.title(f'Article 50 Verdict Distribution Across Meta Platforms (N={total_live})', fontsize=12, fontweight='bold', pad=12)
         plt.ylabel('Number of Posts / Messages Audited', fontsize=10, fontweight='bold')
         plt.xlabel('Social Media Platform', fontsize=10, fontweight='bold')
+        plt.ylim(0, 88)
         plt.grid(axis='y', linestyle=':', alpha=0.6)
         plt.legend(loc='upper right', framealpha=0.95)
         plt.tight_layout()
 
         fig1_path = os.path.join(output_dir, 'fig1_verdict_distribution.png')
         plt.savefig(fig1_path, dpi=300)
-        # Legacy name fallback
-        plt.savefig(os.path.join(output_dir, 'verdict_distribution.png'), dpi=300)
         plt.close()
         print(f"[Figure] Saved: {fig1_path}")
 
@@ -515,12 +519,12 @@ def generate_charts(exp_b, output_dir):
 
         plt.axhline(50, color='#dc2626', linestyle='--', linewidth=1.8,
                     label='Critical Threshold (50 Tokens): Statistical Watermarking Dead Zone')
-        plt.fill_between([0.5, 3.5], 0, 50, color='#fee2e2', alpha=0.35, label='Statistical Watermark Blind Spot (T < 50)')
+        plt.fill_between([0.5, 3.5], 0, 50, color='#fee2e2', alpha=0.25, label='Statistical Watermark Blind Spot (T < 50)')
 
         plt.title('Caption Token Length Distribution & Watermarking Dead Zone by Platform', fontsize=12, fontweight='bold', pad=12)
         plt.ylabel('Token Count ($T$)', fontsize=10, fontweight='bold')
         plt.xlabel('Platform', fontsize=10, fontweight='bold')
-        plt.ylim(bottom=0)
+        plt.ylim(0, 245)
         plt.xlim(0.5, 3.5)
         plt.grid(axis='y', linestyle=':', alpha=0.6)
         plt.legend(loc='upper right', framealpha=0.95)
@@ -542,7 +546,7 @@ def generate_charts(exp_b, output_dir):
 
         plt.bar([i - width/2 for i in x], means, width=width, label='Mean Latency (ms)', color='#2563eb', edgecolor='#1e3a8a')
         plt.bar([i + width/2 for i in x], p95s, width=width, label='$p_{95}$ Latency (ms)', color='#7c3aed', edgecolor='#4c1d95')
-        plt.axhline(200, color='#dc2626', linestyle='--', linewidth=1.8, label='200 ms Real-Time Budget (`NFR-02`)')
+        plt.axhline(200, color='#dc2626', linestyle='--', linewidth=1.8, label='200 ms Real-Time Budget (NFR-02)')
 
         for i in x:
             plt.text(i - width/2, means[i] + 3, f"{means[i]:.1f}ms", ha='center', fontsize=8.5, fontweight='bold')
@@ -552,15 +556,13 @@ def generate_charts(exp_b, output_dir):
         plt.title('Client-Side Processing Latency by Platform vs. 200ms Budget', fontsize=12, fontweight='bold', pad=12)
         plt.ylabel('Processing Latency (ms / post)', fontsize=10, fontweight='bold')
         plt.xlabel('Social Media Platform', fontsize=10, fontweight='bold')
-        plt.ylim(0, 240)
+        plt.ylim(0, 260)
         plt.grid(axis='y', linestyle=':', alpha=0.6)
         plt.legend(loc='upper left', framealpha=0.95)
         plt.tight_layout()
 
         fig3_path = os.path.join(output_dir, 'fig3_processing_latency.png')
         plt.savefig(fig3_path, dpi=300)
-        # Legacy name fallback
-        plt.savefig(os.path.join(output_dir, 'latency_by_platform.png'), dpi=300)
         plt.close()
         print(f"[Figure] Saved: {fig3_path}")
 

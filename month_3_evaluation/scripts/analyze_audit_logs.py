@@ -494,9 +494,9 @@ def generate_charts(exp_b, output_dir):
         plt.title(f'Article 50 Verdict Distribution Across Meta Platforms (N={total_live})', fontsize=12, fontweight='bold', pad=12)
         plt.ylabel('Number of Posts / Messages Audited', fontsize=10, fontweight='bold')
         plt.xlabel('Social Media Platform', fontsize=10, fontweight='bold')
-        plt.ylim(0, 88)
+        plt.ylim(0, 95)
         plt.grid(axis='y', linestyle=':', alpha=0.6)
-        plt.legend(loc='upper right', framealpha=0.95)
+        plt.legend(loc='upper left', framealpha=0.95)
         plt.tight_layout()
 
         fig1_path = os.path.join(output_dir, 'fig1_verdict_distribution.png')
